@@ -1,0 +1,98 @@
+﻿@model IEnumerable<Logiz.Radar.Data.Model.TestVariant>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>TestVariant</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<form asp-controller="TestVariant" asp-action="Index" method="post">
+    <!-- Input and Submit elements -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label">Project</label>
+                <select id="ProjectID" name="ProjectID" class="form-control">
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Scenario</label>
+                <select id="ScenarioID" name="ScenarioID" class="form-control">
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Search" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.VariantName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UpdatedBy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UpdatedDateTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.VariantName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdatedBy)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UpdatedDateTime)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var url = "/Project/GetProjectSelectList";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a project -</option>';
+                $("#ProjectID").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#ProjectID").html(item);
+                $("#ProjectID").val('@ViewBag.ProjectID').change();
+            });
+        });
+
+        $("#ProjectID").change(function () {
+            var projectId = $("#ProjectID").val();
+            var url = "/TestScenario/GetTestScenarioSelectList";
+            $.getJSON(url, { ProjectId: projectId }, function (data) {
+                var item = '<option value="">- Select a scenario -</option>';
+                $("#ScenarioID").empty();
+                $.each(data, function (i, scenario) {
+                    item += '<option value="' + scenario.value + '">' + scenario.text + '</option>'
+                });
+                $("#ScenarioID").html(item);
+                $("#ScenarioID").val('@ViewBag.ScenarioID');
+            });
+        });
+    </script>
+}

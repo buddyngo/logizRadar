@@ -1,0 +1,105 @@
+﻿@model TestVariantViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>TestVariant</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label class="control-label">Project (*)</label>
+                <select asp-for="ProjectID" class="form-control">
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Scenario (*)</label>
+                <select asp-for="TestVariant.ScenarioID" class="form-control">
+                </select>
+                <span asp-validation-for="TestVariant.ScenarioID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">VariantName (*)</label>
+                <textarea asp-for="TestVariant.VariantName" class="form-control"></textarea>
+                <span asp-validation-for="TestVariant.VariantName" class="text-danger"></span>
+            </div>
+
+            <input type="hidden" asp-for="TestVariant.CreatedBy" />
+            <input type="hidden" asp-for="TestVariant.CreatedDateTime" />
+            <input type="hidden" asp-for="TestVariant.UpdatedBy" />
+            <input type="hidden" asp-for="TestVariant.UpdatedDateTime" />
+            <input type="hidden" asp-for="TestVariant.IsActive" />
+            <div class="form-group">
+                <label asp-for="TestVariant.CreatedBy" class="control-label"></label>:
+                @Html.DisplayFor(model => model.TestVariant.CreatedBy)
+                <span asp-validation-for="TestVariant.CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TestVariant.CreatedDateTime" class="control-label"></label>:
+                @Html.DisplayFor(model => model.TestVariant.CreatedDateTime)
+                <span asp-validation-for="TestVariant.CreatedDateTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TestVariant.UpdatedBy" class="control-label"></label>:
+                @Html.DisplayFor(model => model.TestVariant.UpdatedBy)
+                <span asp-validation-for="TestVariant.UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TestVariant.UpdatedDateTime" class="control-label"></label>:
+                @Html.DisplayFor(model => model.TestVariant.UpdatedDateTime)
+                <span asp-validation-for="TestVariant.UpdatedDateTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var url = "/Project/GetProjectSelectList";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a project -</option>';
+                $("#ProjectID").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#ProjectID").html(item);
+
+                if (data.length === 1) {
+                    $("#ProjectID").val(data[0].value).change();
+                }
+            });
+        });
+
+        $("#ProjectID").change(function () {
+            var projectId = $("#ProjectID").val();
+            var url = "/TestScenario/GetTestScenarioSelectList";
+            $.getJSON(url, { ProjectId: projectId }, function (data) {
+                var item = '<option value="">- Select a scenario -</option>';
+                $("#TestVariant_ScenarioID").empty();
+                $.each(data, function (i, scenario) {
+                    item += '<option value="' + scenario.value + '">' + scenario.text + '</option>'
+                });
+                $("#TestVariant_ScenarioID").html(item);
+
+                if (data.length === 1) {
+                    $("#TestVariant_ScenarioID").val(data[0].value);
+                }
+            });
+        });
+    </script>
+}
