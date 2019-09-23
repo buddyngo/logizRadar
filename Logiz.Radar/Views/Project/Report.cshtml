@@ -62,7 +62,7 @@
                     %
                 </td>
                 <td>
-                    @Model.OpenPercentage
+                    @Model.PassedPercentage
                 </td>
                 <td>
                     @Model.FailedPercentage
@@ -171,6 +171,65 @@
         </thead>
         <tbody>
             @foreach (var item in Model.ReportByPlannedDate)
+            {
+                <tr>
+                    <td>
+                        @item.PlannedDate.ToString("yyyy/MM/dd")
+                    </td>
+                    <td>
+                        @item.Passed
+                    </td>
+                    <td>
+                        @item.Failed
+                    </td>
+                    <td>
+                        @item.Open
+                    </td>
+                    <td>
+                        @item.Pending
+                    </td>
+                    <td>
+                        @item.Hold
+                    </td>
+                    <td>
+                        @item.Total
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<br />
+<div>
+    <h5>Test Report by Planned Date Accumulation</h5>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Planned Date
+                </th>
+                <th>
+                    Passed
+                </th>
+                <th>
+                    Failed
+                </th>
+                <th>
+                    Open
+                </th>
+                <th>
+                    Pending
+                </th>
+                <th>
+                    Hold
+                </th>
+                <th>
+                    Total
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ReportByPlannedDateAccumulation)
             {
                 <tr>
                     <td>

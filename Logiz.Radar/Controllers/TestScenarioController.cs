@@ -36,6 +36,7 @@ namespace Logiz.Radar.Controllers
                                       }).OrderBy(i => i.ScenarioName).ToListAsync();
 
             ViewBag.ProjectID = ProjectID;
+            ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
             return View(scenarioList);
         }
@@ -56,6 +57,11 @@ namespace Logiz.Radar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ScenarioName,ProjectID,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] TestScenario testScenario)
         {
+            if (!CanWrite(User.Identity.Name, testScenario.ProjectID))
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 testScenario.SetCreator(User.Identity.Name);
@@ -85,6 +91,11 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            if (!CanWrite(User.Identity.Name, testScenario.ProjectID))
+            {
+                return Forbid();
+            }
+
             return View(testScenario);
         }
 
@@ -103,6 +114,11 @@ namespace Logiz.Radar.Controllers
             if (!AuthorizeData(id))
             {
                 return Unauthorized();
+            }
+
+            if (!CanWrite(User.Identity.Name, testScenario.ProjectID))
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -149,6 +165,11 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            if (!CanWrite(User.Identity.Name, testScenario.ProjectID))
+            {
+                return Forbid();
+            }
+
             return View(testScenario);
         }
 
@@ -163,6 +184,12 @@ namespace Logiz.Radar.Controllers
             }
 
             var testScenario = await _context.TestScenario.FindAsync(id);
+
+            if (!CanWrite(User.Identity.Name, testScenario?.ProjectID))
+            {
+                return Forbid();
+            }
+
             _context.TestScenario.Remove(testScenario);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index), new { ProjectID = testScenario.ProjectID });
@@ -196,6 +223,19 @@ namespace Logiz.Radar.Controllers
                           on scenario.ProjectID equals mapping.ProjectID
                           select 1).Any();
             return result;
+        }
+
+        public bool CanWrite(string username, string projectID)
+        {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(projectID))
+            {
+                return false;
+            }
+
+            var canWrite = _context.UserMappingProject.Any(i => i.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
+                && i.ProjectID.Equals(projectID, StringComparison.OrdinalIgnoreCase)
+                && i.IsActive & i.CanWrite);
+            return canWrite;
         }
     }
 }

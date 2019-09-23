@@ -15,5 +15,7 @@ namespace Logiz.Radar.Data.Model
         [Required]
         [Remote(action: "CheckDuplicateMapping", controller: "UserMappingProject", AdditionalFields = nameof(Username) + "," + nameof(ID))]
         public string ProjectID { get; set; }
+        [Required]
+        public bool CanWrite { get; set; }
     }
 }

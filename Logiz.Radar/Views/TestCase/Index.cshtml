@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Logiz.Radar.Data.Model.TestCase>
+﻿@using Logiz.Radar.Data.Model
+@model IEnumerable<Logiz.Radar.Data.Model.TestCase>
 
 @{
     ViewData["Title"] = "Index";
@@ -7,15 +8,16 @@
 <h1>TestCase</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Create New</a> | <a asp-action="Import">Import</a>
 </p>
 <form asp-controller="TestCase" asp-action="Index" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <!-- Input and Submit elements -->
     <div class="row">
         <div class="col-md-4">
             <div class="form-group">
-                <label class="control-label">Project</label>
-                <select id="ProjectID" name="ProjectID" class="form-control">
+                <label class="control-label">Project (*)</label>
+                <select id="ProjectID" name="ProjectID" class="form-control" required>
                 </select>
             </div>
             <div class="form-group">
@@ -29,7 +31,26 @@
                 </select>
             </div>
             <div class="form-group">
-                <input type="submit" value="Search" class="btn btn-primary" />
+                <label class="control-label">Tester Name</label>
+                <input id="TesterName" name="TesterName" class="form-control" type="text" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">From Planned Date</label>
+                <input id="FromPlannedDate" name="FromPlannedDate" class="form-control" type="date" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">To Planned Date</label>
+                <input id="ToPlannedDate" name="ToPlannedDate" class="form-control" type="date" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">Test Status</label>
+                <select id="TestStatus" name="TestStatus" class="form-control">
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" name="Action" value="Search" class="btn btn-primary" />
+                <input type="submit" name="Action" value="Export" class="btn btn-primary" /> |
+                @Model.Count() result(s)
             </div>
         </div>
     </div>
@@ -42,6 +63,15 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.TestCaseName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TestCaseSteps)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExpectedResult)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TesterName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.PlannedDate)
@@ -63,14 +93,34 @@
                     @Html.DisplayFor(modelItem => item.TestCaseName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.PlannedDate)
+                    @Html.DisplayFor(modelItem => item.TestCaseSteps)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ExpectedResult)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TesterName)
+                </td>
+                <td>
+                    @item.PlannedDate.ToShortDateString()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.TestStatus)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                    @if (ViewBag.CanWrite)
+                    {
+                        <text>
+                            <a asp-action="Edit" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> |
+                            <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <a asp-action="Details" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a>
+                        </text>
+                    }
                 </td>
             </tr>
         }
@@ -79,7 +129,7 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = "/Project/GetProjectSelectList";
+            var url = rootUrl + "Project/GetProjectSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -93,15 +143,19 @@
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = "/TestScenario/GetTestScenarioSelectList";
+            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
+                var itemCodeList = [];
                 $("#ScenarioID").empty();
                 $.each(data, function (i, scenario) {
-                    item += '<option value="' + scenario.value + '">' + scenario.text + '</option>'
+                    item += '<option value="' + scenario.value + '">' + scenario.text + '</option>';
+                    itemCodeList[i] = scenario.value;
                 });
                 $("#ScenarioID").html(item).change();
-                $("#ScenarioID").val('@ViewBag.ScenarioID').change();
+                if (data.length > 0 && itemCodeList.includes('@ViewBag.ScenarioID')) {
+                    $("#ScenarioID").val('@ViewBag.ScenarioID').change();
+                }
             });
         });
 
@@ -111,16 +165,36 @@
 
         function loadVariant() {
             var scenarioId = $("#ScenarioID").val();
-            var url = "/TestVariant/GetTestVariantSelectList";
+            var url = rootUrl + "TestVariant/GetTestVariantSelectList";
             $.getJSON(url, { ScenarioId: scenarioId }, function (data) {
                 var item = '<option value="">- Select a variant -</option>';
+                var itemCodeList = [];
                 $("#VariantID").empty();
                 $.each(data, function (i, variant) {
-                    item += '<option value="' + variant.value + '">' + variant.text + '</option>'
+                    item += '<option value="' + variant.value + '">' + variant.text + '</option>';
+                    itemCodeList[i] = variant.value;
                 });
                 $("#VariantID").html(item);
-                $("#VariantID").val('@ViewBag.VariantID');
+                if (data.length > 0 && itemCodeList.includes('@ViewBag.VariantID')) {
+                    $("#VariantID").val('@ViewBag.VariantID');
+                }
             });
         }
+
+        $(document).ready(function () {
+            var url = rootUrl + "TestCase/GetTestStatusSelectList";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a status -</option>';
+                $("#TestStatus").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#TestStatus").html(item);
+                $("#TestStatus").val('@ViewBag.TestStatus');
+            });
+            $("#TesterName").val('@ViewBag.TesterName');
+            $("#FromPlannedDate").val('@ViewBag.FromPlannedDate');
+            $("#ToPlannedDate").val('@ViewBag.ToPlannedDate');
+        });
     </script>
 }

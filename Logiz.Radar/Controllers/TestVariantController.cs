@@ -28,7 +28,7 @@ namespace Logiz.Radar.Controllers
             var variantList = await (from userProject in _context.UserMappingProject.Where(i => i.Username.Equals(User.Identity.Name, StringComparison.OrdinalIgnoreCase))
                                      join scenario in _context.TestScenario.Where(i => i.ProjectID.Equals(ProjectID, StringComparison.OrdinalIgnoreCase))
                                      on userProject.ProjectID equals scenario.ProjectID
-                                     join variant in _context.TestVariant.Where(i => i.ScenarioID.Equals(ScenarioID, StringComparison.OrdinalIgnoreCase))
+                                     join variant in _context.TestVariant.Where(i => string.IsNullOrEmpty(ScenarioID) || i.ScenarioID.Equals(ScenarioID, StringComparison.OrdinalIgnoreCase))
                                      on scenario.ID equals variant.ScenarioID
                                      select new TestVariant
                                      {
@@ -41,6 +41,7 @@ namespace Logiz.Radar.Controllers
 
             ViewBag.ProjectID = ProjectID;
             ViewBag.ScenarioID = ScenarioID;
+            ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
             return View(variantList);
         }
@@ -65,6 +66,11 @@ namespace Logiz.Radar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string ProjectID, [Bind("VariantName,ScenarioID,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] TestVariant testVariant)
         {
+            if (!CanWrite(User.Identity.Name, ProjectID))
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 testVariant.SetCreator(User.Identity.Name);
@@ -105,6 +111,11 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            if (!CanWrite(User.Identity.Name, scenario.ProjectID))
+            {
+                return Forbid();
+            }
+
             var testVariantViewModel = new TestVariantViewModel()
             {
                 ProjectID = scenario.ProjectID,
@@ -128,6 +139,11 @@ namespace Logiz.Radar.Controllers
             if (!AuthorizeData(id))
             {
                 return Unauthorized();
+            }
+
+            if (!CanWrite(User.Identity.Name, ProjectID))
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -180,6 +196,17 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            var scenario = await _context.TestScenario.FindAsync(testVariant.ScenarioID);
+            if (scenario == null)
+            {
+                return NotFound();
+            }
+
+            if (!CanWrite(User.Identity.Name, scenario.ProjectID))
+            {
+                return Forbid();
+            }
+
             return View(testVariant);
         }
 
@@ -194,7 +221,12 @@ namespace Logiz.Radar.Controllers
             }
 
             var testVariant = await _context.TestVariant.FindAsync(id);
-            var scenario = await _context.TestScenario.FindAsync(testVariant.ScenarioID);
+            var scenario = await _context.TestScenario.FindAsync(testVariant?.ScenarioID);
+
+            if (!CanWrite(User.Identity.Name, scenario?.ProjectID))
+            {
+                return Forbid();
+            }
 
             _context.TestVariant.Remove(testVariant);
             await _context.SaveChangesAsync();
@@ -231,6 +263,19 @@ namespace Logiz.Radar.Controllers
                           on scenario.ProjectID equals mapping.ProjectID
                           select 1).Any();
             return result;
+        }
+
+        public bool CanWrite(string username, string projectID)
+        {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(projectID))
+            {
+                return false;
+            }
+
+            var canWrite = _context.UserMappingProject.Any(i => i.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
+                && i.ProjectID.Equals(projectID, StringComparison.OrdinalIgnoreCase)
+                && i.IsActive & i.CanWrite);
+            return canWrite;
         }
     }
 }

@@ -60,7 +60,7 @@ namespace Logiz.Radar.Migrations
 
                     b.Property<string>("Note");
 
-                    b.Property<DateTime?>("PlannedDate");
+                    b.Property<DateTime>("PlannedDate");
 
                     b.Property<string>("TestCaseName")
                         .IsRequired();
@@ -68,12 +68,14 @@ namespace Logiz.Radar.Migrations
                     b.Property<string>("TestCaseSteps")
                         .IsRequired();
 
-                    b.Property<int>("TestStatus");
+                    b.Property<string>("TestStatus")
+                        .IsRequired();
 
                     b.Property<string>("TestVariantID")
                         .IsRequired();
 
-                    b.Property<string>("TesterName");
+                    b.Property<string>("TesterName")
+                        .IsRequired();
 
                     b.Property<string>("UpdatedBy");
 
@@ -82,6 +84,34 @@ namespace Logiz.Radar.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("TestCase");
+                });
+
+            modelBuilder.Entity("Logiz.Radar.Data.Model.TestCaseAttachment", b =>
+                {
+                    b.Property<string>("ID")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ContentType");
+
+                    b.Property<string>("CreatedBy");
+
+                    b.Property<DateTime>("CreatedDateTime");
+
+                    b.Property<string>("FullFileName");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<string>("OriginalFileName");
+
+                    b.Property<string>("TestCaseID");
+
+                    b.Property<string>("UpdatedBy");
+
+                    b.Property<DateTime>("UpdatedDateTime");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("TestCaseAttachment");
                 });
 
             modelBuilder.Entity("Logiz.Radar.Data.Model.TestScenario", b =>
@@ -140,6 +170,8 @@ namespace Logiz.Radar.Migrations
                 {
                     b.Property<string>("ID")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<bool>("CanWrite");
 
                     b.Property<string>("CreatedBy");
 

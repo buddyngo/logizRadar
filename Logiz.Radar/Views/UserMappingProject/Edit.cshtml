@@ -25,6 +25,11 @@
                 </datalist>
                 <span asp-validation-for="Username" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label asp-for="CanWrite" class="control-label"></label> (*)
+                <input asp-for="CanWrite" class="form-control" />
+                <span asp-validation-for="CanWrite" class="text-danger"></span>
+            </div>
             <input type="hidden" asp-for="ID" />
 
             <input type="hidden" asp-for="CreatedBy" />
@@ -68,7 +73,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = "/Project/GetProjectSelectList";
+            var url = rootUrl + "Project/GetProjectSelectList?onlyCanWrite=true";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -81,7 +86,7 @@
         });
 
         $(document).ready(function () {
-            var url = "/UserMappingProject/GetAssignedUserSelectList";
+            var url = rootUrl + "UserMappingProject/GetAssignedUserSelectList";
             $.getJSON(url, function (data) {
                 var item = "";
                 $("#users").empty();

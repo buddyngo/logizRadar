@@ -13,6 +13,7 @@ namespace Logiz.Radar.Data.Context
         public DbSet<TestScenario> TestScenario { get; set; }
         public DbSet<TestVariant> TestVariant { get; set; }
         public DbSet<TestCase> TestCase { get; set; }
+        public DbSet<TestCaseAttachment> TestCaseAttachment { get; set; }
         public DbSet<UserMappingProject> UserMappingProject { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,6 +22,7 @@ namespace Logiz.Radar.Data.Context
             modelBuilder.Entity<TestScenario>().ToTable("TestScenario");
             modelBuilder.Entity<TestVariant>().ToTable("TestVariant");
             modelBuilder.Entity<TestCase>().ToTable("TestCase");
+            modelBuilder.Entity<TestCaseAttachment>().ToTable("TestCaseAttachment");
             modelBuilder.Entity<UserMappingProject>().ToTable("UserMappingProject");
         }
     }

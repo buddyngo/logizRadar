@@ -70,7 +70,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = "/Project/GetProjectSelectList";
+            var url = rootUrl + "Project/GetProjectSelectList?onlyCanWrite=true";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -87,7 +87,7 @@
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = "/TestScenario/GetTestScenarioSelectList";
+            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
                 $("#TestVariant_ScenarioID").empty();

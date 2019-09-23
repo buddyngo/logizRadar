@@ -14,45 +14,52 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
-        public int Total { get; set; }
+        public int Total
+        {
+            get
+            {
+                return Passed + Failed + Open + Pending + Hold;
+            }
+        }
         public decimal PassedPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Passed * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Passed * 100, Total), 2);
             }
         }
         public decimal FailedPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Failed * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Failed * 100, Total), 2);
             }
         }
         public decimal OpenPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Open * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Open * 100, Total), 2);
             }
         }
         public decimal PendingPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Pending * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Pending * 100, Total), 2);
             }
         }
         public decimal HoldPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(decimal.Divide(Hold * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(decimal.Divide(Hold * 100, Total), 2);
             }
         }
 
         public List<TestReportByScenario> ReportByScenario { get; set; }
         public List<TestReportByPlannedDate> ReportByPlannedDate { get; set; }
+        public List<TestReportByPlannedDate> ReportByPlannedDateAccumulation { get; set; }
     }
 
     public class TestReportByScenario
@@ -64,7 +71,13 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
-        public int Total { get; set; }
+        public int Total
+        {
+            get
+            {
+                return Passed + Failed + Open + Pending + Hold;
+            }
+        }
     }
 
     public class TestReportByPlannedDate
@@ -75,6 +88,12 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
-        public int Total { get; set; }
+        public int Total
+        {
+            get
+            {
+                return Passed + Failed + Open + Pending + Hold;
+            }
+        }
     }
 }

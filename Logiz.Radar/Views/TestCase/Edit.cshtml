@@ -11,8 +11,12 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="TesterName" />
+            <input type="hidden" asp-for="FromPlannedDate" />
+            <input type="hidden" asp-for="ToPlannedDate" />
+            <input type="hidden" asp-for="SearchTestStatus" />
             <div class="form-group">
                 <label class="control-label">Project (*)</label>
                 <select asp-for="ProjectID" class="form-control"></select>
@@ -47,25 +51,51 @@
                 <span asp-validation-for="TestCase.ActualResult" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label class="control-label">TestStatus (*)</label>
-                <select asp-for="TestCase.TestStatus" asp-items="Html.GetEnumSelectList<TestCaseStatus>()" class="form-control"></select>
-                <span asp-validation-for="TestCase.TestStatus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TestCase.Note" class="control-label"></label>
-                <textarea asp-for="TestCase.Note" class="form-control"></textarea>
-                <span asp-validation-for="TestCase.Note" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TestCase.TesterName" class="control-label"></label>
+                <label class="control-label">TesterName (*)</label>
                 <input asp-for="TestCase.TesterName" class="form-control" />
                 <span asp-validation-for="TestCase.TesterName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TestCase.PlannedDate" class="control-label"></label>
-                <input asp-for="TestCase.PlannedDate" class="form-control" />
+                <label class="control-label">PlannedDate (*)</label>
+                <input asp-for="TestCase.PlannedDate" class="form-control" type="date" />
                 <span asp-validation-for="TestCase.PlannedDate" class="text-danger"></span>
             </div>
+            <div class="form-group">
+                <label class="control-label">TestStatus (*)</label>
+                <select asp-for="TestCase.TestStatus" class="form-control"></select>
+                <span asp-validation-for="TestCase.TestStatus" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Attachments</label>
+                <input type="file" name="files" multiple>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            File Name
+                        </th>
+                        <th>
+                            Updated By
+                        </th>
+                        <th>
+                            Updated Datetime
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var attachment in Model.TestCaseAttachments)
+                    {
+                        <tr>
+                            <td><a asp-action="DownloadAttachment" asp-route-id="@attachment.ID"> @attachment.OriginalFileName</a></td>
+                            <td>@attachment.UpdatedBy</td>
+                            <td>@attachment.UpdatedDateTime</td>
+                            <td><a asp-action="DeleteAttachment" asp-route-id="@attachment.ID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus">Delete</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
             <input type="hidden" asp-for="TestCase.ID" />
 
             <input type="hidden" asp-for="TestCase.CreatedBy" />
@@ -101,7 +131,14 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index"
+       asp-route-ProjectID="@Model.ProjectID"
+       asp-route-ScenarioID="@Model.ScenarioID"
+       asp-route-VariantID="@Model.TestCase.TestVariantID"
+       asp-route-TesterName="@Model.TesterName"
+       asp-route-FromPlannedDate="@Model.FromPlannedDate"
+       asp-route-ToPlannedDate="@Model.ToPlannedDate"
+       asp-route-TestStatus="@Model.SearchTestStatus">Back to List</a>
 </div>
 
 @section Scripts {
@@ -109,21 +146,13 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = "/Project/GetProjectSelectList";
-            $.getJSON(url, function (data) {
-                var item = '<option value="">- Select a project -</option>';
-                $("#ProjectID").empty();
-                $.each(data, function (i, project) {
-                    item += '<option value="' + project.value + '">' + project.text + '</option>'
-                });
-                $("#ProjectID").html(item);
-                $("#ProjectID").val('@Model.ProjectID').change();
-            });
+            loadProject();
+            loadTestStatus();
         });
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = "/TestScenario/GetTestScenarioSelectList";
+            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
                 $("#ScenarioID").empty();
@@ -137,7 +166,7 @@
 
         $("#ScenarioID").change(function () {
             var scenarioId = $("#ScenarioID").val();
-            var url = "/TestVariant/GetTestVariantSelectList";
+            var url = rootUrl + "TestVariant/GetTestVariantSelectList";
             $.getJSON(url, { ScenarioId: scenarioId }, function (data) {
                 var item = '<option value="">- Select a variant -</option>';
                 $("#TestCase_TestVariantID").empty();
@@ -148,5 +177,31 @@
                 $("#TestCase_TestVariantID").val('@Model.TestCase.TestVariantID').change();
             });
         });
+
+        function loadProject () {
+            var url = rootUrl + "Project/GetProjectSelectList?onlyCanWrite=true";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a project -</option>';
+                $("#ProjectID").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#ProjectID").html(item);
+                $("#ProjectID").val('@Model.ProjectID').change();
+            });
+        };
+
+        function loadTestStatus () {
+            var url = rootUrl + "TestCase/GetTestStatusSelectList";
+            $.getJSON(url, function (data) {
+                var item = '';
+                $("#TestCase_TestStatus").empty();
+                $.each(data, function (i, testStatus) {
+                    item += '<option value="' + testStatus.value + '">' + testStatus.text + '</option>'
+                });
+                $("#TestCase_TestStatus").html(item);
+                $("#TestCase_TestStatus").val('@Model.TestCase.TestStatus');
+            });
+        };
     </script>
 }

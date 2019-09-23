@@ -31,11 +31,13 @@ namespace Logiz.Radar.Controllers
                                   {
                                       ID = mapping.ID,
                                       Username = mapping.Username,
+                                      CanWrite = mapping.CanWrite,
                                       UpdatedBy = mapping.UpdatedBy,
                                       UpdatedDateTime = mapping.UpdatedDateTime
                                   }).OrderByDescending(i => i.UpdatedDateTime).ToListAsync();
 
             ViewBag.ProjectID = ProjectID;
+            ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
             return View(dataList);
         }
@@ -53,8 +55,13 @@ namespace Logiz.Radar.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Username,ProjectID,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] UserMappingProject userMappingProject)
+        public async Task<IActionResult> Create([Bind("Username,ProjectID,CanWrite,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] UserMappingProject userMappingProject)
         {
+            if (!CanWrite(User.Identity.Name, userMappingProject.ProjectID))
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 userMappingProject.SetCreator(User.Identity.Name);
@@ -100,6 +107,11 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            if (!CanWrite(User.Identity.Name, userMappingProject.ProjectID))
+            {
+                return Forbid();
+            }
+
             return View(userMappingProject);
         }
 
@@ -108,7 +120,7 @@ namespace Logiz.Radar.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Username,ProjectID,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] UserMappingProject userMappingProject)
+        public async Task<IActionResult> Edit(string id, [Bind("Username,ProjectID,CanWrite,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] UserMappingProject userMappingProject)
         {
             if (id != userMappingProject.ID)
             {
@@ -118,6 +130,11 @@ namespace Logiz.Radar.Controllers
             if (!AuthorizeData(id))
             {
                 return Unauthorized();
+            }
+
+            if (!CanWrite(User.Identity.Name, userMappingProject.ProjectID))
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -164,6 +181,11 @@ namespace Logiz.Radar.Controllers
                 return Unauthorized();
             }
 
+            if (!CanWrite(User.Identity.Name, userMappingProject.ProjectID))
+            {
+                return Forbid();
+            }
+
             return View(userMappingProject);
         }
 
@@ -178,6 +200,12 @@ namespace Logiz.Radar.Controllers
             }
 
             var userMappingProject = await _context.UserMappingProject.FindAsync(id);
+
+            if (!CanWrite(User.Identity.Name, userMappingProject?.ProjectID))
+            {
+                return Forbid();
+            }
+
             _context.UserMappingProject.Remove(userMappingProject);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index), new { ProjectID = userMappingProject.ProjectID });
@@ -214,6 +242,19 @@ namespace Logiz.Radar.Controllers
                           on project.ProjectID equals mapping.ProjectID
                           select 1).Any();
             return result;
+        }
+
+        public bool CanWrite(string username, string projectID)
+        {
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(projectID))
+            {
+                return false;
+            }
+
+            var canWrite = _context.UserMappingProject.Any(i => i.Username.Equals(username, StringComparison.OrdinalIgnoreCase)
+                && i.ProjectID.Equals(projectID, StringComparison.OrdinalIgnoreCase)
+                && i.IsActive & i.CanWrite);
+            return canWrite;
         }
     }
 }

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\workspace\\Logiz.Radar\\Logiz.Radar\\Logiz.Radar.csproj": {}
+    "D:\\workspace\\Logiz.Radar\\trunk\\Logiz.Radar\\Logiz.Radar.csproj": {}
   },
   "projects": {
-    "D:\\workspace\\Logiz.Radar\\Logiz.Radar\\Logiz.Radar.csproj": {
+    "D:\\workspace\\Logiz.Radar\\trunk\\Logiz.Radar\\Logiz.Radar.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\workspace\\Logiz.Radar\\Logiz.Radar\\Logiz.Radar.csproj",
+        "projectUniqueName": "D:\\workspace\\Logiz.Radar\\trunk\\Logiz.Radar\\Logiz.Radar.csproj",
         "projectName": "Logiz.Radar",
-        "projectPath": "D:\\workspace\\Logiz.Radar\\Logiz.Radar\\Logiz.Radar.csproj",
+        "projectPath": "D:\\workspace\\Logiz.Radar\\trunk\\Logiz.Radar\\Logiz.Radar.csproj",
         "packagesPath": "C:\\Users\\locnh1\\.nuget\\packages\\",
-        "outputPath": "D:\\workspace\\Logiz.Radar\\Logiz.Radar\\obj\\",
+        "outputPath": "D:\\workspace\\Logiz.Radar\\trunk\\Logiz.Radar\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -41,6 +41,10 @@
       "frameworks": {
         "netcoreapp2.2": {
           "dependencies": {
+            "EPPlus": {
+              "target": "Package",
+              "version": "[4.5.3.2, )"
+            },
             "Microsoft.AspNetCore.App": {
               "suppressParent": "All",
               "target": "Package",

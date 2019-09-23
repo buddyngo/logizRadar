@@ -99,7 +99,7 @@ namespace Logiz.Radar
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (Configuration.GetValue<string>("AppSetting:Environment") == "Development")
             {
                 app.UseDeveloperExceptionPage();
             }

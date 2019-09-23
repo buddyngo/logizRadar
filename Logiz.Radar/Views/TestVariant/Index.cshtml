@@ -14,8 +14,8 @@
     <div class="row">
         <div class="col-md-4">
             <div class="form-group">
-                <label class="control-label">Project</label>
-                <select id="ProjectID" name="ProjectID" class="form-control">
+                <label class="control-label">Project (*)</label>
+                <select id="ProjectID" name="ProjectID" class="form-control" required>
                 </select>
             </div>
             <div class="form-group">
@@ -24,7 +24,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <input type="submit" value="Search" class="btn btn-primary" />
+                <input type="submit" value="Search" class="btn btn-primary" /> | @Model.Count() result(s)
             </div>
         </div>
     </div>
@@ -32,6 +32,9 @@
 <table class="table">
     <thead>
         <tr>
+            <th>
+                Scenario
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.VariantName)
             </th>
@@ -49,6 +52,9 @@
         {
             <tr>
                 <td>
+                    @Html.DisplayFor(modelItem => item.ScenarioID)
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.VariantName)
                 </td>
                 <td>
@@ -58,8 +64,13 @@
                     @Html.DisplayFor(modelItem => item.UpdatedDateTime)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                    @if (ViewBag.CanWrite)
+                    {
+                        <text>
+                            <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
+                            <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                        </text>
+                    }
                 </td>
             </tr>
         }
@@ -69,7 +80,7 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = "/Project/GetProjectSelectList";
+            var url = rootUrl + "Project/GetProjectSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -83,15 +94,19 @@
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = "/TestScenario/GetTestScenarioSelectList";
+            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
+                var itemCodeList = [];
                 $("#ScenarioID").empty();
                 $.each(data, function (i, scenario) {
                     item += '<option value="' + scenario.value + '">' + scenario.text + '</option>'
+                    itemCodeList[i] = scenario.value;
                 });
                 $("#ScenarioID").html(item);
-                $("#ScenarioID").val('@ViewBag.ScenarioID');
+                if (data.length > 0 && itemCodeList.includes('@ViewBag.ScenarioID')) {
+                    $("#ScenarioID").val('@ViewBag.ScenarioID');
+                }
             });
         });
     </script>
