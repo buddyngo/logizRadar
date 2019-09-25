@@ -43,22 +43,9 @@ namespace Logiz.Radar.Controllers
             ViewBag.VariantID = VariantID;
             ViewBag.TesterName = TesterName;
             ViewBag.FromPlannedDate = FromPlannedDate?.ToString("yyyy-MM-dd");
-            if (ToPlannedDate.HasValue)
-            {
-                ViewBag.ToPlannedDate = ToPlannedDate?.ToString("yyyy-MM-dd");
-            }
-            else
-            {
-                ViewBag.ToPlannedDate = DateTime.Now.ToString("yyyy-MM-dd");
-            }
-            if (!string.IsNullOrEmpty(TestStatus))
-            {
-                ViewBag.TestStatus = TestStatus;
-            }
-            else
-            {
-                ViewBag.TestStatus = TestStatuses.Open;
-            }
+            ViewBag.ToPlannedDate = ToPlannedDate?.ToString("yyyy-MM-dd");
+            ViewBag.TestStatus = TestStatus;
+
             ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
             if (Action == "Export" && string.IsNullOrEmpty(ScenarioID))
@@ -76,8 +63,9 @@ namespace Logiz.Radar.Controllers
                                   && (!FromPlannedDate.HasValue || i.PlannedDate >= FromPlannedDate)
                                   && (!ToPlannedDate.HasValue || i.PlannedDate <= ToPlannedDate)
                                   && (string.IsNullOrEmpty(TestStatus) || i.TestStatus.Equals(TestStatus, StringComparison.OrdinalIgnoreCase))
-                                  && (string.IsNullOrEmpty(TesterName) || i.TesterName.Equals(TesterName, StringComparison.OrdinalIgnoreCase)))
+                                  && (string.IsNullOrEmpty(TesterName) || i.TesterName.Contains(TesterName, StringComparison.OrdinalIgnoreCase)))
                                   on variant.ID equals testCase.TestVariantID
+                                  orderby testCase.PlannedDate, testCase.TestCaseName
                                   select new TestCase
                                   {
                                       ID = testCase.ID,
@@ -91,7 +79,7 @@ namespace Logiz.Radar.Controllers
                                       TestStatus = testCase.TestStatus,
                                       UpdatedBy = testCase.UpdatedBy,
                                       UpdatedDateTime = testCase.UpdatedDateTime
-                                  }).OrderBy(i => i.TestCaseName).ToListAsync();
+                                  }).ToListAsync();
 
             if (Action == "Export")
             {
@@ -383,8 +371,9 @@ namespace Logiz.Radar.Controllers
             return RedirectToAction(nameof(Index), new { ProjectID = testVariant?.ProjectID, ScenarioID = testVariant?.ScenarioID, VariantID = testCase.TestVariantID });
         }
 
-        // GET: TestCase/Details/5
-        public async Task<IActionResult> Details(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
+        // GET: TestCase/View/5
+        [AllowAnonymous]
+        public async Task<IActionResult> View(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
         {
             if (id == null)
             {
@@ -400,24 +389,37 @@ namespace Logiz.Radar.Controllers
             var testVariant = await (from variant in _context.TestVariant.Where(i => i.ID.Equals(testCase.TestVariantID, StringComparison.OrdinalIgnoreCase))
                                      join scenario in _context.TestScenario
                                      on variant.ScenarioID equals scenario.ID
-                                     select new { ProjectID = scenario.ProjectID, ScenarioID = scenario.ID }).FirstOrDefaultAsync();
+                                     join project in _context.Project
+                                     on scenario.ProjectID equals project.ID
+                                     select new
+                                     {
+                                         ProjectID = scenario.ProjectID,
+                                         ProjectName = project.ProjectName,
+                                         ScenarioID = scenario.ID,
+                                         ScenarioName = scenario.ScenarioName,
+                                         VariantID = variant.ID,
+                                         VariantName = variant.VariantName
+                                     }).FirstOrDefaultAsync();
 
             if (testVariant == null)
             {
                 return NotFound();
             }
 
-            if (!AuthorizeData(id))
-            {
-                return Unauthorized();
-            }
+            //if (!AuthorizeData(id))
+            //{
+            //    return Unauthorized();
+            //}
 
             var attachments = await _context.TestCaseAttachment.Where(i => i.TestCaseID.Equals(id, StringComparison.OrdinalIgnoreCase)).ToListAsync();
 
             var testCaseViewModel = new TestCaseViewModel()
             {
                 ProjectID = testVariant.ProjectID,
+                ProjectName = testVariant.ProjectName,
                 ScenarioID = testVariant.ScenarioID,
+                ScenarioName = testVariant.ScenarioName,
+                VariantName = testVariant.VariantName,
                 TesterName = TesterName,
                 FromPlannedDate = FromPlannedDate,
                 ToPlannedDate = ToPlannedDate,
@@ -425,6 +427,7 @@ namespace Logiz.Radar.Controllers
                 TestCase = testCase,
                 TestCaseAttachments = attachments
             };
+            ViewBag.CanWrite = CanWrite(User.Identity.Name, testVariant.ProjectID);
             return View(testCaseViewModel);
         }
 
@@ -586,6 +589,21 @@ namespace Logiz.Radar.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!CanWrite(User.Identity.Name, importModel.ProjectID))
+                {
+                    return Forbid();
+                }
+
+                var scenario = await (from s in _context.TestScenario.Where(i => i.ID.Equals(importModel.ScenarioID, StringComparison.OrdinalIgnoreCase) && i.IsActive)
+                                      join p in _context.Project.Where(i => i.ID.Equals(importModel.ProjectID, StringComparison.OrdinalIgnoreCase) && i.IsActive)
+                                      on s.ProjectID equals p.ID
+                                      select s).FirstOrDefaultAsync();
+
+                if (scenario == null)
+                {
+                    return NotFound();
+                }
+
                 using (var stream = importModel.DataFile.OpenReadStream())
                 {
                     using (var excelPackage = new ExcelPackage(stream))

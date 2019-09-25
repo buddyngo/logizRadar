@@ -111,7 +111,8 @@
                     @if (ViewBag.CanWrite)
                     {
                         <text>
-                            <a asp-action="Edit" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> |
+                            <a asp-action="Edit" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> | 
+                            <a asp-action="View" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a> | 
                             <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
                         </text>
                     }

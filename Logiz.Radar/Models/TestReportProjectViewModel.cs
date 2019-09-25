@@ -14,11 +14,12 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
+        public int Canceled { get; set; }
         public int Total
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold;
+                return Passed + Failed + Open + Pending + Hold + Canceled;
             }
         }
         public decimal PassedPercentage
@@ -57,6 +58,16 @@ namespace Logiz.Radar.Models
             }
         }
 
+        public decimal CanceledPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(decimal.Divide(Canceled * 100, Total), 2);
+            }
+        }
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public List<TestReportByScenario> ReportByScenario { get; set; }
         public List<TestReportByPlannedDate> ReportByPlannedDate { get; set; }
         public List<TestReportByPlannedDate> ReportByPlannedDateAccumulation { get; set; }
@@ -71,13 +82,16 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
+        public int Canceled { get; set; }
         public int Total
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold;
+                return Passed + Failed + Open + Pending + Hold + Canceled;
             }
         }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public class TestReportByPlannedDate
@@ -88,11 +102,12 @@ namespace Logiz.Radar.Models
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
+        public int Canceled { get; set; }
         public int Total
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold;
+                return Passed + Failed + Open + Pending + Hold + Canceled;
             }
         }
     }

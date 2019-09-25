@@ -1,0 +1,78 @@
+﻿@model Logiz.Radar.Models.ImportTestCaseViewModel
+
+@{
+    ViewData["Title"] = "Import";
+}
+
+<h1>Import</h1>
+
+<h4>TestCase</h4>
+<a href="~/template/logiz.radar.test-case.xlsx">Download template</a>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Import" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ProjectID" class="control-label"></label>
+                <select asp-for="ProjectID" class="form-control"></select>
+                <span asp-validation-for="ProjectID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ScenarioID" class="control-label"></label>
+                <select asp-for="ScenarioID" class="form-control"></select>
+                <span asp-validation-for="ScenarioID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DataFile" class="control-label"></label>
+                <input asp-for="DataFile" type="file" accept=".xlsx" class="form-control" />
+                <span asp-validation-for="DataFile" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Import" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var url = rootUrl + "Project/GetProjectSelectList?onlyCanWrite=true";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a project -</option>';
+                $("#ProjectID").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#ProjectID").html(item).change();
+
+                if (data.length === 1) {
+                    $("#ProjectID").val(data[0].value).change();
+                }
+            });
+        });
+
+        $("#ProjectID").change(function () {
+            var projectId = $("#ProjectID").val();
+            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
+            $.getJSON(url, { ProjectId: projectId }, function (data) {
+                var item = '<option value="">- Select a scenario -</option>';
+                $("#ScenarioID").empty();
+                $.each(data, function (i, scenario) {
+                    item += '<option value="' + scenario.value + '">' + scenario.text + '</option>'
+                });
+                $("#ScenarioID").html(item);
+
+                if (data.length === 1) {
+                    $("#ScenarioID").val(data[0].value);
+                }
+            });
+        });
+    </script>
+}

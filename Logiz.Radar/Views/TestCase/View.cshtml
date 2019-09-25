@@ -1,0 +1,149 @@
+﻿@model TestCaseViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>TestCase</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ProjectName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ProjectName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ScenarioName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ScenarioName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.VariantName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.VariantName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.TestCaseName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.TestCaseName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.TestCaseSteps)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.TestCaseSteps)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.ExpectedResult)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.ExpectedResult)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.ActualResult)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.ActualResult)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.TesterName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.TesterName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.PlannedDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.PlannedDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.TestStatus)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.TestStatus)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.CreatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.CreatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.CreatedDateTime)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.CreatedDateTime)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.UpdatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.UpdatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.UpdatedDateTime)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.UpdatedDateTime)
+        </dd>
+    </dl>
+</div>
+
+<label class="control-label"><b>Attachments</b></label>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                File Name
+            </th>
+            <th>
+                Updated By
+            </th>
+            <th>
+                Updated Datetime
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var attachment in Model.TestCaseAttachments)
+        {
+        <tr>
+            <td><a asp-action="DownloadAttachment" asp-route-id="@attachment.ID"> @attachment.OriginalFileName</a></td>
+            <td>@attachment.UpdatedBy</td>
+            <td>@attachment.UpdatedDateTime</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    @if(ViewBag.CanWrite)
+    {
+    <text>
+        <a asp-action="Edit" asp-route-id="@Model.TestCase.ID"
+           asp-route-ProjectID="@Model.ProjectID"
+           asp-route-ScenarioID="@Model.ScenarioID"
+           asp-route-VariantID="@Model.TestCase.TestVariantID"
+           asp-route-TesterName="@Model.TesterName"
+           asp-route-FromPlannedDate="@Model.FromPlannedDate"
+           asp-route-ToPlannedDate="@Model.ToPlannedDate"
+           asp-route-SearchTestStatus="@Model.SearchTestStatus">Edit</a> |
+    </text>
+    }
+    <a asp-action="Index"
+       asp-route-ProjectID="@Model.ProjectID"
+       asp-route-ScenarioID="@Model.ScenarioID"
+       asp-route-VariantID="@Model.TestCase.TestVariantID"
+       asp-route-TesterName="@Model.TesterName"
+       asp-route-FromPlannedDate="@Model.FromPlannedDate"
+       asp-route-ToPlannedDate="@Model.ToPlannedDate"
+       asp-route-TestStatus="@Model.SearchTestStatus">Back to List</a>
+</div>

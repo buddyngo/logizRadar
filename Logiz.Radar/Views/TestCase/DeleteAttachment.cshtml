@@ -1,0 +1,60 @@
+﻿@model TestCaseAttachmentViewModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>TestCaseAttachment</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.OriginalFileName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.OriginalFileName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.CreatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.CreatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.CreatedDateTime)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.CreatedDateTime)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.UpdatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.UpdatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.UpdatedDateTime)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.UpdatedDateTime)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCaseAttachment.IsActive)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCaseAttachment.IsActive)
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteAttachment">
+        <input type="hidden" asp-for="TestCaseAttachment.ID" />
+        <input type="hidden" asp-for="TesterName" />
+        <input type="hidden" asp-for="FromPlannedDate" />
+        <input type="hidden" asp-for="ToPlannedDate" />
+        <input type="hidden" asp-for="SearchTestStatus" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Edit" asp-route-id="@Model.TestCaseAttachment.TestCaseID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus">Back to List</a>
+    </form>
+</div>

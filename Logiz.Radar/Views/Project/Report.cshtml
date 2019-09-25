@@ -7,14 +7,24 @@
 <h4>@Model.ProjectName</h4>
 <br />
 <div>
-    <h5>Test Report by Status</h5>
+    <h5>Project summary</h5>
     <table class="table">
         <thead>
             <tr>
                 <th>
+                    Start Date
+                </th>
+                <th>
+                    End Date
+                </th>
+                <th>
+                    Total
                 </th>
                 <th>
                     Passed
+                </th>
+                <th>
+                    Canceled
                 </th>
                 <th>
                     Failed
@@ -28,18 +38,34 @@
                 <th>
                     Hold
                 </th>
-                <th>
-                    Total
-                </th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>
-                    Number of Case
+                    @if (Model.StartDate.HasValue)
+                    {
+                        <text>
+                            @Model.StartDate.Value.ToString("yyyy/MM/dd")
+                        </text>
+                    }
+                </td>
+                <td>
+                    @if (Model.EndDate.HasValue)
+                    {
+                        <text>
+                            @Model.EndDate.Value.ToString("yyyy/MM/dd")
+                        </text>
+                    }
+                </td>
+                <td>
+                    @Model.Total
                 </td>
                 <td>
                     @Model.Passed
+                </td>
+                <td>
+                    @Model.Canceled
                 </td>
                 <td>
                     @Model.Failed
@@ -53,30 +79,29 @@
                 <td>
                     @Model.Hold
                 </td>
-                <td>
-                    @Model.Total
-                </td>
             </tr>
             <tr>
-                <td>
-                    %
-                </td>
-                <td>
-                    @Model.PassedPercentage
-                </td>
-                <td>
-                    @Model.FailedPercentage
-                </td>
-                <td>
-                    @Model.OpenPercentage
-                </td>
-                <td>
-                    @Model.PendingPercentage
-                </td>
-                <td>
-                    @Model.HoldPercentage
-                </td>
                 <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    @Model.PassedPercentage%
+                </td>
+                <td>
+                    @Model.CanceledPercentage%
+                </td>
+                <td>
+                    @Model.FailedPercentage%
+                </td>
+                <td>
+                    @Model.OpenPercentage%
+                </td>
+                <td>
+                    @Model.PendingPercentage%
+                </td>
+                <td>
+                    @Model.HoldPercentage%
+                </td>
             </tr>
         </tbody>
     </table>
@@ -91,7 +116,19 @@
                     Scenario
                 </th>
                 <th>
+                    Start Date
+                </th>
+                <th>
+                    End Date
+                </th>
+                <th>
+                    Total
+                </th>
+                <th>
                     Passed
+                </th>
+                <th>
+                    Canceled
                 </th>
                 <th>
                     Failed
@@ -105,9 +142,6 @@
                 <th>
                     Hold
                 </th>
-                <th>
-                    Total
-                </th>
             </tr>
         </thead>
         <tbody>
@@ -118,7 +152,29 @@
                         @item.ScenarioName
                     </td>
                     <td>
+                        @if (item.StartDate.HasValue)
+                        {
+                            <text>
+                                @item.StartDate.Value.ToString("yyyy/MM/dd")
+                            </text>
+                        }
+                    </td>
+                    <td>
+                        @if (item.EndDate.HasValue)
+                        {
+                            <text>
+                                @item.EndDate.Value.ToString("yyyy/MM/dd")
+                            </text>
+                        }
+                    </td>
+                    <td>
+                        @item.Total
+                    </td>
+                    <td>
                         @item.Passed
+                    </td>
+                    <td>
+                        @item.Canceled
                     </td>
                     <td>
                         @item.Failed
@@ -131,9 +187,6 @@
                     </td>
                     <td>
                         @item.Hold
-                    </td>
-                    <td>
-                        @item.Total
                     </td>
                 </tr>
             }
@@ -150,7 +203,13 @@
                     Planned Date
                 </th>
                 <th>
+                    Total
+                </th>
+                <th>
                     Passed
+                </th>
+                <th>
+                    Canceled
                 </th>
                 <th>
                     Failed
@@ -164,9 +223,6 @@
                 <th>
                     Hold
                 </th>
-                <th>
-                    Total
-                </th>
             </tr>
         </thead>
         <tbody>
@@ -177,7 +233,13 @@
                         @item.PlannedDate.ToString("yyyy/MM/dd")
                     </td>
                     <td>
+                        @item.Total
+                    </td>
+                    <td>
                         @item.Passed
+                    </td>
+                    <td>
+                        @item.Canceled
                     </td>
                     <td>
                         @item.Failed
@@ -190,9 +252,6 @@
                     </td>
                     <td>
                         @item.Hold
-                    </td>
-                    <td>
-                        @item.Total
                     </td>
                 </tr>
             }
@@ -209,7 +268,13 @@
                     Planned Date
                 </th>
                 <th>
+                    Total
+                </th>
+                <th>
                     Passed
+                </th>
+                <th>
+                    Canceled
                 </th>
                 <th>
                     Failed
@@ -223,9 +288,6 @@
                 <th>
                     Hold
                 </th>
-                <th>
-                    Total
-                </th>
             </tr>
         </thead>
         <tbody>
@@ -236,7 +298,13 @@
                         @item.PlannedDate.ToString("yyyy/MM/dd")
                     </td>
                     <td>
+                        @item.Total
+                    </td>
+                    <td>
                         @item.Passed
+                    </td>
+                    <td>
+                        @item.Canceled
                     </td>
                     <td>
                         @item.Failed
@@ -249,9 +317,6 @@
                     </td>
                     <td>
                         @item.Hold
-                    </td>
-                    <td>
-                        @item.Total
                     </td>
                 </tr>
             }
