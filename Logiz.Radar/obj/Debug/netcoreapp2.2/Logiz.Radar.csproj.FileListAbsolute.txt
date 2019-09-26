@@ -86,6 +86,7 @@ D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\T
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\Edit.g.cshtml.cs
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\Import.g.cshtml.cs
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\Index.g.cshtml.cs
+D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\View.g.cshtml.cs
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestScenario\Create.g.cshtml.cs
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestScenario\Delete.g.cshtml.cs
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestScenario\Edit.g.cshtml.cs
@@ -106,4 +107,3 @@ D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.V
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.dll
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.pdb
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csproj.CopyComplete
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\View.g.cshtml.cs

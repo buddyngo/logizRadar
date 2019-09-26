@@ -45,14 +45,7 @@ namespace Logiz.Radar.Controllers
             ViewBag.FromPlannedDate = FromPlannedDate?.ToString("yyyy-MM-dd");
             ViewBag.ToPlannedDate = ToPlannedDate?.ToString("yyyy-MM-dd");
             ViewBag.TestStatus = TestStatus;
-
             ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
-
-            if (Action == "Export" && string.IsNullOrEmpty(ScenarioID))
-            {
-                ModelState.AddModelError("", "ScenarioID is required.");
-                return View(new List<TestCase>());
-            }
 
             var caseList = await (from userProject in _context.UserMappingProject.Where(i => i.Username.Equals(User.Identity.Name, StringComparison.OrdinalIgnoreCase))
                                   join scenario in _context.TestScenario.Where(i => i.ProjectID.Equals(ProjectID, StringComparison.OrdinalIgnoreCase))
@@ -66,42 +59,51 @@ namespace Logiz.Radar.Controllers
                                   && (string.IsNullOrEmpty(TesterName) || i.TesterName.Contains(TesterName, StringComparison.OrdinalIgnoreCase)))
                                   on variant.ID equals testCase.TestVariantID
                                   orderby testCase.PlannedDate, testCase.TestCaseName
-                                  select new TestCase
+                                  select new TestCaseViewModel
                                   {
-                                      ID = testCase.ID,
-                                      TestVariantID = variant.VariantName,
-                                      TestCaseName = testCase.TestCaseName,
-                                      TestCaseSteps = testCase.TestCaseSteps,
-                                      ExpectedResult = testCase.ExpectedResult,
-                                      ActualResult = testCase.ActualResult,
-                                      TesterName = testCase.TesterName,
-                                      PlannedDate = testCase.PlannedDate,
-                                      TestStatus = testCase.TestStatus,
-                                      UpdatedBy = testCase.UpdatedBy,
-                                      UpdatedDateTime = testCase.UpdatedDateTime
+                                      ScenarioName = scenario.ScenarioName,
+                                      VariantName = variant.VariantName,
+                                      TestCase = new TestCase()
+                                      {
+                                          ID = testCase.ID,
+                                          TestVariantID = testCase.TestVariantID,
+                                          TestCaseName = testCase.TestCaseName,
+                                          TestCaseSteps = testCase.TestCaseSteps,
+                                          ExpectedResult = testCase.ExpectedResult,
+                                          ActualResult = testCase.ActualResult,
+                                          TesterName = testCase.TesterName,
+                                          PlannedDate = testCase.PlannedDate,
+                                          TestStatus = testCase.TestStatus,
+                                          UpdatedBy = testCase.UpdatedBy,
+                                          UpdatedDateTime = testCase.UpdatedDateTime
+                                      }
                                   }).ToListAsync();
 
             if (Action == "Export")
             {
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/template/logiz.radar.test-case.xlsx");
+                var scenario = await _context.TestScenario.FirstOrDefaultAsync(i => i.ID.Equals(ScenarioID, StringComparison.OrdinalIgnoreCase));
                 var fi = new FileInfo(filePath);
                 using (var p = new ExcelPackage(fi))
                 {
                     var ws = p.Workbook.Worksheets["TestCase"];
                     int totalCases = caseList.Count;
+                    ws.Cells[1, 11].Value = "ScenarioName";
                     for (int i = 0; i < totalCases; i++)
                     {
-                        ws.Cells[i + 2, 1].Value = caseList[i].TestVariantID;
-                        ws.Cells[i + 2, 2].Value = caseList[i].TestCaseName;
-                        ws.Cells[i + 2, 3].Value = caseList[i].TestCaseSteps;
-                        ws.Cells[i + 2, 4].Value = caseList[i].ExpectedResult;
-                        ws.Cells[i + 2, 5].Value = caseList[i].ActualResult;
-                        ws.Cells[i + 2, 6].Value = caseList[i].TesterName;
-                        ws.Cells[i + 2, 7].Value = caseList[i].PlannedDate;
-                        ws.Cells[i + 2, 8].Value = caseList[i].TestStatus;
-                        ws.Cells[i + 2, 9].Value = caseList[i].ID;
+                        ws.Cells[i + 2, 1].Value = caseList[i].VariantName;
+                        ws.Cells[i + 2, 2].Value = caseList[i].TestCase.TestCaseName;
+                        ws.Cells[i + 2, 3].Value = caseList[i].TestCase.TestCaseSteps;
+                        ws.Cells[i + 2, 4].Value = caseList[i].TestCase.ExpectedResult;
+                        ws.Cells[i + 2, 5].Value = caseList[i].TestCase.ActualResult;
+                        ws.Cells[i + 2, 6].Value = caseList[i].TestCase.TesterName;
+                        ws.Cells[i + 2, 7].Value = caseList[i].TestCase.PlannedDate;
+                        ws.Cells[i + 2, 8].Value = caseList[i].TestCase.TestStatus;
+                        ws.Cells[i + 2, 9].Value = caseList[i].TestCase.ID;
+                        ws.Cells[i + 2, 11].Value = caseList[i].ScenarioName;
                     }
-                    return File(p.GetAsByteArray(), "application/excel", $"logiz.radar.test-case_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xlsx");
+                    string fileNameToExport = "logiz.radar.test-case_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
+                    return File(p.GetAsByteArray(), "application/excel", fileNameToExport);
                 }
             }
 
@@ -224,19 +226,20 @@ namespace Logiz.Radar.Controllers
                     testCase.SetUpdater(User.Identity.Name);
                     _context.Update(testCase);
                     List<TestCaseAttachment> attachments = new List<TestCaseAttachment>();
-                    string subFolder = Path.Combine("wwwroot", "datafile", DateTime.Today.ToString("yyyyMMdd"));
-                    string rootPath = Path.Combine(Directory.GetCurrentDirectory(), subFolder);
-                    if (!Directory.Exists(rootPath))
+                    string subFolder = Path.Combine("datafile/testCaseAttachment/", ProjectID, ScenarioID, id);
+                    string fullFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", subFolder);
+                    if (!Directory.Exists(fullFolder))
                     {
-                        Directory.CreateDirectory(rootPath);
+                        Directory.CreateDirectory(fullFolder);
                     }
                     foreach (var formFile in files)
                     {
                         if (formFile.Length > 0)
                         {
                             string filename = Guid.NewGuid().ToString() + Path.GetExtension(formFile.FileName);
-                            string filePath = Path.Combine(rootPath, filename);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            string fullPath = Path.Combine(fullFolder, filename);
+                            string filePath = Path.Combine(subFolder, filename);
+                            using (var stream = new FileStream(fullPath, FileMode.Create))
                             {
                                 await formFile.CopyToAsync(stream);
                                 var attachment = new TestCaseAttachment()
@@ -292,9 +295,7 @@ namespace Logiz.Radar.Controllers
                 return NotFound();
             }
 
-            var path = Path.Combine(
-                           Directory.GetCurrentDirectory(),
-                           "wwwroot", attachment.FullFileName);
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", attachment.FullFileName);
 
             var memory = new MemoryStream();
             using (var stream = new FileStream(path, FileMode.Open))

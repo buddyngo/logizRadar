@@ -1,5 +1,5 @@
 ﻿@using Logiz.Radar.Data.Model
-@model IEnumerable<Logiz.Radar.Data.Model.TestCase>
+@model IEnumerable<TestCaseViewModel>
 
 @{
     ViewData["Title"] = "Index";
@@ -62,22 +62,22 @@
                 Variant
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TestCaseName)
+                @Html.DisplayNameFor(model => model.TestCase.TestCaseName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TestCaseSteps)
+                @Html.DisplayNameFor(model => model.TestCase.TestCaseSteps)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ExpectedResult)
+                @Html.DisplayNameFor(model => model.TestCase.ExpectedResult)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TesterName)
+                @Html.DisplayNameFor(model => model.TestCase.TesterName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.PlannedDate)
+                @Html.DisplayNameFor(model => model.TestCase.PlannedDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.TestStatus)
+                @Html.DisplayNameFor(model => model.TestCase.TestStatus)
             </th>
             <th></th>
         </tr>
@@ -87,39 +87,39 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TestVariantID)
+                    @Html.DisplayFor(modelItem => item.VariantName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TestCaseName)
+                    @Html.DisplayFor(modelItem => item.TestCase.TestCaseName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TestCaseSteps)
+                    @Html.DisplayFor(modelItem => item.TestCase.TestCaseSteps)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.ExpectedResult)
+                    @Html.DisplayFor(modelItem => item.TestCase.ExpectedResult)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TesterName)
+                    @Html.DisplayFor(modelItem => item.TestCase.TesterName)
                 </td>
                 <td>
-                    @item.PlannedDate.ToShortDateString()
+                    @item.TestCase.PlannedDate.ToShortDateString()
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TestStatus)
+                    @Html.DisplayFor(modelItem => item.TestCase.TestStatus)
                 </td>
                 <td>
                     @if (ViewBag.CanWrite)
                     {
                         <text>
-                            <a asp-action="Edit" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> | 
-                            <a asp-action="View" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a> | 
-                            <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                            <a asp-action="Edit" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> | 
+                            <a asp-action="View" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a> | 
+                            <a asp-action="Delete" asp-route-id="@item.TestCase.ID">Delete</a>
                         </text>
                     }
                     else
                     {
                         <text>
-                            <a asp-action="Details" asp-route-id="@item.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a>
+                            <a asp-action="Details" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a>
                         </text>
                     }
                 </td>
