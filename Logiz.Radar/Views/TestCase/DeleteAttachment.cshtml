@@ -54,7 +54,9 @@
         <input type="hidden" asp-for="FromPlannedDate" />
         <input type="hidden" asp-for="ToPlannedDate" />
         <input type="hidden" asp-for="SearchTestStatus" />
+        <input type="hidden" asp-for="FromUpdatedDate" />
+        <input type="hidden" asp-for="ToUpdatedDate" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Edit" asp-route-id="@Model.TestCaseAttachment.TestCaseID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus">Back to List</a>
+        <a asp-action="Edit" asp-route-id="@Model.TestCaseAttachment.TestCaseID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus" asp-route-FromUpdatedDate="@Model.FromUpdatedDate" asp-route-ToUpdatedDate="@Model.ToUpdatedDate">Back to List</a>
     </form>
 </div>

@@ -16,6 +16,8 @@
             <input type="hidden" asp-for="TesterName" />
             <input type="hidden" asp-for="FromPlannedDate" />
             <input type="hidden" asp-for="ToPlannedDate" />
+            <input type="hidden" asp-for="FromUpdatedDate" />
+            <input type="hidden" asp-for="ToUpdatedDate" />
             <input type="hidden" asp-for="SearchTestStatus" />
             <div class="form-group">
                 <label class="control-label">Project (*)</label>
@@ -91,7 +93,7 @@
                             <td><a asp-action="DownloadAttachment" asp-route-id="@attachment.ID"> @attachment.OriginalFileName</a></td>
                             <td>@attachment.UpdatedBy</td>
                             <td>@attachment.UpdatedDateTime</td>
-                            <td><a asp-action="DeleteAttachment" asp-route-id="@attachment.ID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus">Delete</a></td>
+                            <td><a asp-action="DeleteAttachment" asp-route-id="@attachment.ID" asp-route-TesterName="@Model.TesterName" asp-route-FromPlannedDate="@Model.FromPlannedDate" asp-route-ToPlannedDate="@Model.ToPlannedDate" asp-route-SearchTestStatus="@Model.SearchTestStatus" asp-route-FromUpdatedDate="@Model.FromUpdatedDate" asp-route-ToUpdatedDate="@Model.ToUpdatedDate">Delete</a></td>
                         </tr>
                     }
                 </tbody>
@@ -138,7 +140,9 @@
        asp-route-TesterName="@Model.TesterName"
        asp-route-FromPlannedDate="@Model.FromPlannedDate"
        asp-route-ToPlannedDate="@Model.ToPlannedDate"
-       asp-route-TestStatus="@Model.SearchTestStatus">Back to List</a>
+       asp-route-TestStatus="@Model.SearchTestStatus"
+       asp-route-FromUpdatedDate="@Model.FromUpdatedDate"
+       asp-route-ToUpdatedDate="@Model.ToUpdatedDate">Back to List</a>
 </div>
 
 @section Scripts {

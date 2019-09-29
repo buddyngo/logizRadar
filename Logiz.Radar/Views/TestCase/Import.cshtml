@@ -50,7 +50,7 @@
                 $.each(data, function (i, project) {
                     item += '<option value="' + project.value + '">' + project.text + '</option>'
                 });
-                $("#ProjectID").html(item).change();
+                $("#ProjectID").html(item);
 
                 if (data.length === 1) {
                     $("#ProjectID").val(data[0].value).change();

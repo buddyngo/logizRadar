@@ -149,7 +149,16 @@
             {
                 <tr>
                     <td>
-                        @item.ScenarioName
+                        @if (item.StartDate <= DateTime.Today && DateTime.Today <= item.EndDate)
+                        {
+                            <b>
+                                @item.ScenarioName
+                            </b>
+                        }
+                        else
+                        {
+                            @item.ScenarioName
+                        }
                     </td>
                     <td>
                         @if (item.StartDate.HasValue)
@@ -206,6 +215,9 @@
                     Total
                 </th>
                 <th>
+                    Workload
+                </th>
+                <th>
                     Passed
                 </th>
                 <th>
@@ -230,10 +242,22 @@
             {
                 <tr>
                     <td>
-                        @item.PlannedDate.ToString("yyyy/MM/dd")
+                        @if (item.PlannedDate.Date == DateTime.Today)
+                        {
+                            <b>
+                                @item.PlannedDate.ToString("yyyy/MM/dd")
+                            </b>
+                        }
+                        else
+                        {
+                            @item.PlannedDate.ToString("yyyy/MM/dd")
+                        }
                     </td>
                     <td>
                         @item.Total
+                    </td>
+                    <td>
+                        @item.WorkloadPercentage%
                     </td>
                     <td>
                         @item.Passed
@@ -271,6 +295,9 @@
                     Total
                 </th>
                 <th>
+                    Workload
+                </th>
+                <th>
                     Passed
                 </th>
                 <th>
@@ -295,10 +322,22 @@
             {
                 <tr>
                     <td>
-                        @item.PlannedDate.ToString("yyyy/MM/dd")
+                        @if (item.PlannedDate.Date == DateTime.Today)
+                        {
+                            <b>
+                                @item.PlannedDate.ToString("yyyy/MM/dd")
+                            </b>
+                        }
+                        else
+                        {
+                            @item.PlannedDate.ToString("yyyy/MM/dd")
+                        }
                     </td>
                     <td>
                         @item.Total
+                    </td>
+                    <td>
+                        @item.WorkloadPercentage%
                     </td>
                     <td>
                         @item.Passed

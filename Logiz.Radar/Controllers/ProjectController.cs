@@ -376,7 +376,7 @@ namespace Logiz.Radar.Controllers
                                }).OrderBy(i => i.PlannedDate).ToList();
             report.ReportByPlannedDate = planSummary;
 
-            //Summry by PlannedDate per Day
+            //Summry by PlannedDate per Day Accumulation
             var runningPlanSummary = (from plan in planSummary
                                       from running in planSummary
                                       where plan.PlannedDate >= running.PlannedDate
@@ -388,10 +388,11 @@ namespace Logiz.Radar.Controllers
                                           running.Open,
                                           running.Pending,
                                           running.Hold,
-                                          running.Canceled
+                                          running.Canceled,
+                                          running.WorkloadPercentage
                                       })
                                         .GroupBy(i => i.PlannedDate)
-                                        .Select(i => new TestReportByPlannedDate()
+                                        .Select(i => new TestReportByPlannedDateAccumulation()
                                         {
                                             PlannedDate = i.Key,
                                             Passed = i.Sum(j => j.Passed),
@@ -399,7 +400,8 @@ namespace Logiz.Radar.Controllers
                                             Open = i.Sum(j => j.Open),
                                             Pending = i.Sum(j => j.Pending),
                                             Hold = i.Sum(j => j.Hold),
-                                            Canceled = i.Sum(j => j.Canceled)
+                                            Canceled = i.Sum(j => j.Canceled),
+                                            WorkloadPercentage = i.Sum(j => j.WorkloadPercentage)
                                         }).OrderBy(i => i.PlannedDate).ToList();
             report.ReportByPlannedDateAccumulation = runningPlanSummary;
 

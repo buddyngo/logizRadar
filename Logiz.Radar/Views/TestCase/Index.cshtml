@@ -48,6 +48,14 @@
                 </select>
             </div>
             <div class="form-group">
+                <label class="control-label">From Updated Date</label>
+                <input id="FromUpdatedDate" name="FromUpdatedDate" class="form-control" type="datetime-local" />
+            </div>
+            <div class="form-group">
+                <label class="control-label">To Updated Date</label>
+                <input id="ToUpdatedDate" name="ToUpdatedDate" class="form-control" type="datetime-local" />
+            </div>
+            <div class="form-group">
                 <input type="submit" name="Action" value="Search" class="btn btn-primary" />
                 <input type="submit" name="Action" value="Export" class="btn btn-primary" /> |
                 @Model.Count() result(s)
@@ -111,15 +119,16 @@
                     @if (ViewBag.CanWrite)
                     {
                         <text>
-                            <a asp-action="Edit" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Edit</a> | 
-                            <a asp-action="View" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a> | 
+                            <a asp-action="Edit" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus" asp-route-FromUpdatedDate="@ViewBag.FromUpdatedDate" asp-route-ToUpdatedDate="@ViewBag.ToUpdatedDate">Edit</a> |
+                            <a asp-action="Create" asp-route-id="@item.TestCase.ID">Clone</a> |
+                            <a asp-action="View" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus" asp-route-FromUpdatedDate="@ViewBag.FromUpdatedDate" asp-route-ToUpdatedDate="@ViewBag.ToUpdatedDate">Details</a> |
                             <a asp-action="Delete" asp-route-id="@item.TestCase.ID">Delete</a>
                         </text>
                     }
                     else
                     {
                         <text>
-                            <a asp-action="Details" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus">Details</a>
+                            <a asp-action="Details" asp-route-id="@item.TestCase.ID" asp-route-TesterName="@ViewBag.TesterName" asp-route-FromPlannedDate="@ViewBag.FromPlannedDate" asp-route-ToPlannedDate="@ViewBag.ToPlannedDate" asp-route-SearchTestStatus="@ViewBag.TestStatus" asp-route-FromUpdatedDate="@ViewBag.FromUpdatedDate" asp-route-ToUpdatedDate="@ViewBag.ToUpdatedDate">Details</a>
                         </text>
                     }
                 </td>
@@ -130,6 +139,16 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(function () {
+            loadProject();
+            loadTestStatus();
+            $("#TesterName").val('@ViewBag.TesterName');
+            $("#FromPlannedDate").val('@ViewBag.FromPlannedDate');
+            $("#ToPlannedDate").val('@ViewBag.ToPlannedDate');
+            $("#FromUpdatedDate").val('@ViewBag.FromUpdatedDate');
+            $("#ToUpdatedDate").val('@ViewBag.ToUpdatedDate');
+        });
+
+        function loadProject() {
             var url = rootUrl + "Project/GetProjectSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
@@ -140,7 +159,20 @@
                 $("#ProjectID").html(item)
                 $("#ProjectID").val('@ViewBag.ProjectID').change();
             });
-        });
+        };
+
+        function loadTestStatus() {
+            var url = rootUrl + "TestCase/GetTestStatusSelectList";
+            $.getJSON(url, function (data) {
+                var item = '<option value="">- Select a status -</option>';
+                $("#TestStatus").empty();
+                $.each(data, function (i, project) {
+                    item += '<option value="' + project.value + '">' + project.text + '</option>'
+                });
+                $("#TestStatus").html(item);
+                $("#TestStatus").val('@ViewBag.TestStatus');
+            });
+        };
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
@@ -181,21 +213,5 @@
                 }
             });
         }
-
-        $(document).ready(function () {
-            var url = rootUrl + "TestCase/GetTestStatusSelectList";
-            $.getJSON(url, function (data) {
-                var item = '<option value="">- Select a status -</option>';
-                $("#TestStatus").empty();
-                $.each(data, function (i, project) {
-                    item += '<option value="' + project.value + '">' + project.text + '</option>'
-                });
-                $("#TestStatus").html(item);
-                $("#TestStatus").val('@ViewBag.TestStatus');
-            });
-            $("#TesterName").val('@ViewBag.TesterName');
-            $("#FromPlannedDate").val('@ViewBag.FromPlannedDate');
-            $("#ToPlannedDate").val('@ViewBag.ToPlannedDate');
-        });
     </script>
 }

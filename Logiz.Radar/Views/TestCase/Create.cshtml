@@ -112,7 +112,10 @@
                 });
                 $("#ProjectID").html(item)
 
-                if (data.length === 1) {
+                if ('@Model.ProjectID' != '') {
+                    $("#ProjectID").val('@Model.ProjectID').change();
+                }
+                else if (data.length === 1) {
                     $("#ProjectID").val(data[0].value).change();
                 }
             });
@@ -129,7 +132,10 @@
                 });
                 $("#ScenarioID").html(item).change();
 
-                if (data.length === 1) {
+                if ('@Model.ScenarioID' != '') {
+                    $("#ScenarioID").val('@Model.ScenarioID').change();
+                }
+                else if (data.length === 1) {
                     $("#ScenarioID").val(data[0].value).change();
                 }
             });
@@ -150,7 +156,10 @@
                 });
                 $("#TestCase_TestVariantID").html(item);
 
-                if (data.length === 1) {
+                if ('@Model.TestCase.TestVariantID' != '') {
+                    $("#TestCase_TestVariantID").val('@Model.TestCase.TestVariantID').change();
+                }
+                else if (data.length === 1) {
                     $("#TestCase_TestVariantID").val(data[0].value);
                 }
             });

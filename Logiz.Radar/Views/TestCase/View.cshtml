@@ -115,28 +115,30 @@
     <tbody>
         @foreach (var attachment in Model.TestCaseAttachments)
         {
-        <tr>
-            <td><a asp-action="DownloadAttachment" asp-route-id="@attachment.ID"> @attachment.OriginalFileName</a></td>
-            <td>@attachment.UpdatedBy</td>
-            <td>@attachment.UpdatedDateTime</td>
-        </tr>
+            <tr>
+                <td><a asp-action="DownloadAttachment" asp-route-id="@attachment.ID"> @attachment.OriginalFileName</a></td>
+                <td>@attachment.UpdatedBy</td>
+                <td>@attachment.UpdatedDateTime</td>
+            </tr>
         }
     </tbody>
 </table>
 
 <div>
-    @if(ViewBag.CanWrite)
+    @if (ViewBag.CanWrite)
     {
-    <text>
-        <a asp-action="Edit" asp-route-id="@Model.TestCase.ID"
-           asp-route-ProjectID="@Model.ProjectID"
-           asp-route-ScenarioID="@Model.ScenarioID"
-           asp-route-VariantID="@Model.TestCase.TestVariantID"
-           asp-route-TesterName="@Model.TesterName"
-           asp-route-FromPlannedDate="@Model.FromPlannedDate"
-           asp-route-ToPlannedDate="@Model.ToPlannedDate"
-           asp-route-SearchTestStatus="@Model.SearchTestStatus">Edit</a> |
-    </text>
+        <text>
+            <a asp-action="Edit" asp-route-id="@Model.TestCase.ID"
+               asp-route-ProjectID="@Model.ProjectID"
+               asp-route-ScenarioID="@Model.ScenarioID"
+               asp-route-VariantID="@Model.TestCase.TestVariantID"
+               asp-route-TesterName="@Model.TesterName"
+               asp-route-FromPlannedDate="@Model.FromPlannedDate"
+               asp-route-ToPlannedDate="@Model.ToPlannedDate"
+               asp-route-SearchTestStatus="@Model.SearchTestStatus"
+               asp-route-FromUpdatedDate="@Model.FromUpdatedDate"
+               asp-route-ToUpdatedDate="@Model.ToUpdatedDate">Edit</a> |
+        </text>
     }
     <a asp-action="Index"
        asp-route-ProjectID="@Model.ProjectID"
@@ -145,5 +147,7 @@
        asp-route-TesterName="@Model.TesterName"
        asp-route-FromPlannedDate="@Model.FromPlannedDate"
        asp-route-ToPlannedDate="@Model.ToPlannedDate"
-       asp-route-TestStatus="@Model.SearchTestStatus">Back to List</a>
+       asp-route-TestStatus="@Model.SearchTestStatus"
+       asp-route-FromUpdatedDate="@Model.FromUpdatedDate"
+       asp-route-ToUpdatedDate="@Model.ToUpdatedDate">Back to List</a>
 </div>

@@ -36,7 +36,7 @@ namespace Logiz.Radar.Controllers
         }
 
         // GET: TestCase
-        public async Task<IActionResult> Index(string ProjectID, string ScenarioID, string VariantID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string TestStatus, string Action)
+        public async Task<IActionResult> Index(string ProjectID, string ScenarioID, string VariantID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string TestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate, string Action)
         {
             ViewBag.ProjectID = ProjectID;
             ViewBag.ScenarioID = ScenarioID;
@@ -44,6 +44,8 @@ namespace Logiz.Radar.Controllers
             ViewBag.TesterName = TesterName;
             ViewBag.FromPlannedDate = FromPlannedDate?.ToString("yyyy-MM-dd");
             ViewBag.ToPlannedDate = ToPlannedDate?.ToString("yyyy-MM-dd");
+            ViewBag.FromUpdatedDate = FromUpdatedDate?.ToString("yyyy-MM-ddTHH:mm:ss.sss");
+            ViewBag.ToUpdatedDate = ToUpdatedDate?.ToString("yyyy-MM-ddTHH:mm:ss.sss");
             ViewBag.TestStatus = TestStatus;
             ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
@@ -55,14 +57,20 @@ namespace Logiz.Radar.Controllers
                                   join testCase in _context.TestCase.Where(i => (string.IsNullOrEmpty(VariantID) || i.TestVariantID.Equals(VariantID, StringComparison.OrdinalIgnoreCase))
                                   && (!FromPlannedDate.HasValue || i.PlannedDate >= FromPlannedDate)
                                   && (!ToPlannedDate.HasValue || i.PlannedDate <= ToPlannedDate)
+                                  && (!FromUpdatedDate.HasValue || i.UpdatedDateTime >= FromUpdatedDate)
+                                  && (!ToUpdatedDate.HasValue || i.UpdatedDateTime <= ToUpdatedDate)
                                   && (string.IsNullOrEmpty(TestStatus) || i.TestStatus.Equals(TestStatus, StringComparison.OrdinalIgnoreCase))
                                   && (string.IsNullOrEmpty(TesterName) || i.TesterName.Contains(TesterName, StringComparison.OrdinalIgnoreCase)))
                                   on variant.ID equals testCase.TestVariantID
+                                  join attachment in _context.TestCaseAttachment.Where(i => i.IsActive).Select(i => new { i.TestCaseID }).Distinct()
+                                  on testCase.ID equals attachment.TestCaseID into groupAttachment
+                                  from leftAttachment in groupAttachment.DefaultIfEmpty()
                                   orderby testCase.PlannedDate, testCase.TestCaseName
                                   select new TestCaseViewModel
                                   {
                                       ScenarioName = scenario.ScenarioName,
                                       VariantName = variant.VariantName,
+                                      HasAttachment = leftAttachment != null ? true : false,
                                       TestCase = new TestCase()
                                       {
                                           ID = testCase.ID,
@@ -89,6 +97,11 @@ namespace Logiz.Radar.Controllers
                     var ws = p.Workbook.Worksheets["TestCase"];
                     int totalCases = caseList.Count;
                     ws.Cells[1, 11].Value = "ScenarioName";
+                    ws.Cells[1, 12].Value = "HasAttachment";
+                    ws.Cells[1, 13].Value = "CreatedBy";
+                    ws.Cells[1, 14].Value = "CreatedDateTime";
+                    ws.Cells[1, 15].Value = "UpdatedBy";
+                    ws.Cells[1, 16].Value = "UpdatedDateTime";
                     for (int i = 0; i < totalCases; i++)
                     {
                         ws.Cells[i + 2, 1].Value = caseList[i].VariantName;
@@ -101,6 +114,11 @@ namespace Logiz.Radar.Controllers
                         ws.Cells[i + 2, 8].Value = caseList[i].TestCase.TestStatus;
                         ws.Cells[i + 2, 9].Value = caseList[i].TestCase.ID;
                         ws.Cells[i + 2, 11].Value = caseList[i].ScenarioName;
+                        ws.Cells[i + 2, 12].Value = caseList[i].HasAttachment;
+                        ws.Cells[i + 2, 13].Value = caseList[i].TestCase.CreatedBy;
+                        ws.Cells[i + 2, 14].Value = caseList[i].TestCase.CreatedDateTime;
+                        ws.Cells[i + 2, 15].Value = caseList[i].TestCase.UpdatedBy;
+                        ws.Cells[i + 2, 16].Value = caseList[i].TestCase.UpdatedDateTime;
                     }
                     string fileNameToExport = "logiz.radar.test-case_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
                     return File(p.GetAsByteArray(), "application/excel", fileNameToExport);
@@ -111,21 +129,37 @@ namespace Logiz.Radar.Controllers
         }
 
         // GET: TestCase/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create(string id)
         {
-            TestCase testCase = new TestCase()
+            if (!string.IsNullOrEmpty(id))
             {
-                TesterName = "?",
-                PlannedDate = new DateTime(2000, 1, 1),
-                TestStatus = TestStatuses.Open
-            };
-            testCase.SetCreator(User.Identity.Name);
+                var clonedTestCase = await (from tc in _context.TestCase.Where(i => i.ID.Equals(id, StringComparison.OrdinalIgnoreCase))
+                                            join variant in _context.TestVariant
+                                            on tc.TestVariantID equals variant.ID
+                                            join scenario in _context.TestScenario
+                                            on variant.ScenarioID equals scenario.ID
+                                            select new TestCaseViewModel() { ProjectID = scenario.ProjectID, ScenarioID = scenario.ID, TestCase = tc }).FirstOrDefaultAsync();
+
+                if (clonedTestCase != null)
+                {
+                    clonedTestCase.TestCase.SetCreator(User.Identity.Name);
+                    clonedTestCase.TestCase.PlannedDate = new DateTime();
+                    return View(clonedTestCase);
+                }
+            }
+
             TestCaseViewModel newCase = new TestCaseViewModel()
             {
                 ProjectID = string.Empty,
                 ScenarioID = string.Empty,
-                TestCase = testCase
+                TestCase = new TestCase()
+                {
+                    TesterName = "?",
+                    TestStatus = TestStatuses.Open
+                }
             };
+            newCase.TestCase.SetCreator(User.Identity.Name);
+
             return View(newCase);
         }
 
@@ -143,11 +177,19 @@ namespace Logiz.Radar.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index), new { ProjectID = ProjectID, ScenarioID = ScenarioID, VariantID = testCase.TestVariantID });
             }
-            return View(testCase);
+
+            TestCaseViewModel newCase = new TestCaseViewModel()
+            {
+                ProjectID = ProjectID,
+                ScenarioID = ScenarioID,
+                TestCase = testCase
+            };
+
+            return View(newCase);
         }
 
         // GET: TestCase/Edit/5
-        public async Task<IActionResult> Edit(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
+        public async Task<IActionResult> Edit(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate)
         {
             if (id == null)
             {
@@ -190,6 +232,8 @@ namespace Logiz.Radar.Controllers
                 FromPlannedDate = FromPlannedDate,
                 ToPlannedDate = ToPlannedDate,
                 SearchTestStatus = SearchTestStatus,
+                FromUpdatedDate = FromUpdatedDate,
+                ToUpdatedDate = ToUpdatedDate,
                 TestCase = testCase,
                 TestCaseAttachments = attachments
             };
@@ -201,7 +245,7 @@ namespace Logiz.Radar.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, string ProjectID, string ScenarioID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, List<IFormFile> files,
+        public async Task<IActionResult> Edit(string id, string ProjectID, string ScenarioID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate, List<IFormFile> files,
             [Bind("TestCaseName,TestVariantID,TestCaseSteps,ExpectedResult,ActualResult,TesterName,PlannedDate,TestStatus,Note,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] TestCase testCase)
         {
             if (id != testCase.ID)
@@ -271,7 +315,18 @@ namespace Logiz.Radar.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index), new { ProjectID = ProjectID, ScenarioID = ScenarioID, VariantID = testCase.TestVariantID, TesterName = TesterName, FromPlannedDate = FromPlannedDate, ToPlannedDate = ToPlannedDate, TestStatus = SearchTestStatus });
+                return RedirectToAction(nameof(Index), new
+                {
+                    ProjectID = ProjectID,
+                    ScenarioID = ScenarioID,
+                    VariantID = testCase.TestVariantID,
+                    TesterName = TesterName,
+                    FromPlannedDate = FromPlannedDate,
+                    ToPlannedDate = ToPlannedDate,
+                    TestStatus = SearchTestStatus,
+                    FromUpdatedDate = FromUpdatedDate,
+                    ToUpdatedDate = ToUpdatedDate
+                });
             }
             var testCaseViewModel = new TestCaseViewModel()
             {
@@ -281,6 +336,8 @@ namespace Logiz.Radar.Controllers
                 FromPlannedDate = FromPlannedDate,
                 ToPlannedDate = ToPlannedDate,
                 SearchTestStatus = SearchTestStatus,
+                FromUpdatedDate = FromUpdatedDate,
+                ToUpdatedDate = ToUpdatedDate,
                 TestCase = testCase
             };
             return View(testCaseViewModel);
@@ -374,7 +431,7 @@ namespace Logiz.Radar.Controllers
 
         // GET: TestCase/View/5
         [AllowAnonymous]
-        public async Task<IActionResult> View(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
+        public async Task<IActionResult> View(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate)
         {
             if (id == null)
             {
@@ -425,6 +482,8 @@ namespace Logiz.Radar.Controllers
                 FromPlannedDate = FromPlannedDate,
                 ToPlannedDate = ToPlannedDate,
                 SearchTestStatus = SearchTestStatus,
+                FromUpdatedDate = FromUpdatedDate,
+                ToUpdatedDate = ToUpdatedDate,
                 TestCase = testCase,
                 TestCaseAttachments = attachments
             };
@@ -433,7 +492,7 @@ namespace Logiz.Radar.Controllers
         }
 
         // GET: TestCase/DeleteAttachment/5
-        public async Task<IActionResult> DeleteAttachment(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
+        public async Task<IActionResult> DeleteAttachment(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate)
         {
             if (id == null)
             {
@@ -472,6 +531,8 @@ namespace Logiz.Radar.Controllers
                 FromPlannedDate = FromPlannedDate,
                 ToPlannedDate = ToPlannedDate,
                 SearchTestStatus = SearchTestStatus,
+                FromUpdatedDate = FromUpdatedDate,
+                ToUpdatedDate = ToUpdatedDate,
                 TestCaseAttachment = testCaseAttachment
             };
 
@@ -481,7 +542,7 @@ namespace Logiz.Radar.Controllers
         // POST: TestCase/DeleteAttachmentConfirmed/5
         [HttpPost, ActionName("DeleteAttachment")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAttachmentConfirmed(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus)
+        public async Task<IActionResult> DeleteAttachmentConfirmed(string id, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate)
         {
             var testCaseAttachment = await _context.TestCaseAttachment.FindAsync(id);
 
@@ -502,16 +563,26 @@ namespace Logiz.Radar.Controllers
                                      on testCase.TestVariantID equals variant.ID
                                      join scenario in _context.TestScenario
                                      on variant.ScenarioID equals scenario.ID
-                                     select new { ProjectID = scenario.ProjectID, ScenarioID = scenario.ID }).FirstOrDefaultAsync();
-
+                                     select new TestCaseViewModel() { ProjectID = scenario.ProjectID, ScenarioID = scenario.ID, TestCase = testCase }).FirstOrDefaultAsync();
             if (!CanWrite(User.Identity.Name, testVariant?.ProjectID))
             {
                 return Forbid();
             }
 
             _context.TestCaseAttachment.Remove(testCaseAttachment);
+            testVariant.TestCase.SetUpdater(User.Identity.Name);
+            _context.Update(testVariant.TestCase);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Edit), new { id = testCaseAttachment.TestCaseID, TesterName = TesterName, FromPlannedDate = FromPlannedDate, ToPlannedDate = ToPlannedDate, SearchTestStatus = SearchTestStatus });
+            return RedirectToAction(nameof(Edit), new
+            {
+                id = testCaseAttachment.TestCaseID,
+                TesterName = TesterName,
+                FromPlannedDate = FromPlannedDate,
+                ToPlannedDate = ToPlannedDate,
+                SearchTestStatus = SearchTestStatus,
+                FromUpdatedDate = FromUpdatedDate,
+                ToUpdatedDate = ToUpdatedDate
+            });
         }
 
         private bool TestCaseExists(string id)

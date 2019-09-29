@@ -11,6 +11,8 @@ namespace Logiz.Radar.Models
         public string TesterName { get; set; }
         public DateTime? FromPlannedDate { get; set; }
         public DateTime? ToPlannedDate { get; set; }
+        public DateTime? FromUpdatedDate { get; set; }
+        public DateTime? ToUpdatedDate { get; set; }
         public string SearchTestStatus { get; set; }
         public TestCaseAttachment TestCaseAttachment { get; set; }
     }

@@ -54,7 +54,7 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(decimal.Divide(Hold * 100, Total), 2);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Hold * 100, Total), 2);
             }
         }
 
@@ -62,7 +62,7 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(decimal.Divide(Canceled * 100, Total), 2);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Canceled * 100, Total), 2);
             }
         }
 
@@ -70,7 +70,7 @@ namespace Logiz.Radar.Models
         public DateTime? EndDate { get; set; }
         public List<TestReportByScenario> ReportByScenario { get; set; }
         public List<TestReportByPlannedDate> ReportByPlannedDate { get; set; }
-        public List<TestReportByPlannedDate> ReportByPlannedDateAccumulation { get; set; }
+        public List<TestReportByPlannedDateAccumulation> ReportByPlannedDateAccumulation { get; set; }
     }
 
     public class TestReportByScenario
@@ -110,5 +110,31 @@ namespace Logiz.Radar.Models
                 return Passed + Failed + Open + Pending + Hold + Canceled;
             }
         }
+        public Decimal WorkloadPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Open + Pending + Hold) * 100, Total), 0);
+            }
+        }
+    }
+
+    public class TestReportByPlannedDateAccumulation
+    {
+        public DateTime PlannedDate { get; set; }
+        public int Passed { get; set; }
+        public int Failed { get; set; }
+        public int Open { get; set; }
+        public int Hold { get; set; }
+        public int Pending { get; set; }
+        public int Canceled { get; set; }
+        public int Total
+        {
+            get
+            {
+                return Passed + Failed + Open + Pending + Hold + Canceled;
+            }
+        }
+        public Decimal WorkloadPercentage { get; set; }
     }
 }
