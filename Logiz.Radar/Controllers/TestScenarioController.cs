@@ -190,6 +190,11 @@ namespace Logiz.Radar.Controllers
                 return Forbid();
             }
 
+            if (await _context.TestVariant.AnyAsync(i => i.ScenarioID.Equals(id, StringComparison.OrdinalIgnoreCase)))
+            {
+                return RedirectToAction("Error", "Home", new { errorMessage = "All variants of this scenario must be deleted first." });
+            }
+
             _context.TestScenario.Remove(testScenario);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index), new { ProjectID = testScenario.ProjectID });

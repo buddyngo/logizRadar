@@ -62,7 +62,7 @@ namespace Logiz.Radar.Controllers
                                   && (string.IsNullOrEmpty(TestStatus) || i.TestStatus.Equals(TestStatus, StringComparison.OrdinalIgnoreCase))
                                   && (string.IsNullOrEmpty(TesterName) || i.TesterName.Contains(TesterName, StringComparison.OrdinalIgnoreCase)))
                                   on variant.ID equals testCase.TestVariantID
-                                  join attachment in _context.TestCaseAttachment.Where(i => i.IsActive).Select(i => new { i.TestCaseID }).Distinct()
+                                  join attachment in _context.TestCaseAttachment.Select(i => new { i.TestCaseID }).Distinct()
                                   on testCase.ID equals attachment.TestCaseID into groupAttachment
                                   from leftAttachment in groupAttachment.DefaultIfEmpty()
                                   orderby testCase.PlannedDate, testCase.TestCaseName
@@ -155,6 +155,7 @@ namespace Logiz.Radar.Controllers
                 TestCase = new TestCase()
                 {
                     TesterName = "?",
+                    PlannedDate = new DateTime(2000, 1, 1),
                     TestStatus = TestStatuses.Open
                 }
             };
@@ -424,6 +425,11 @@ namespace Logiz.Radar.Controllers
                 return Forbid();
             }
 
+            if (await _context.TestCaseAttachment.AnyAsync(i => i.TestCaseID.Equals(testCase.ID, StringComparison.OrdinalIgnoreCase)))
+            {
+                return RedirectToAction("Error", "Home", new { errorMessage = "All attachments of this test case must be deleted first." });
+            }
+
             _context.TestCase.Remove(testCase);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index), new { ProjectID = testVariant?.ProjectID, ScenarioID = testVariant?.ScenarioID, VariantID = testCase.TestVariantID });
@@ -573,6 +579,8 @@ namespace Logiz.Radar.Controllers
             testVariant.TestCase.SetUpdater(User.Identity.Name);
             _context.Update(testVariant.TestCase);
             await _context.SaveChangesAsync();
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", testCaseAttachment.FullFileName);
+            System.IO.File.Delete(filePath);
             return RedirectToAction(nameof(Edit), new
             {
                 id = testCaseAttachment.TestCaseID,

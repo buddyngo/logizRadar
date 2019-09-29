@@ -25,12 +25,9 @@ namespace Logiz.Radar
 {
     public class Startup
     {
-        private readonly ILogger _logger;
-
         public Startup(IConfiguration configuration, ILogger<Startup> logger)
         {
             Configuration = configuration;
-            _logger = logger;
         }
 
         public IConfiguration Configuration { get; }
@@ -105,8 +102,17 @@ namespace Logiz.Radar
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error?code=500");
-                app.UseStatusCodePagesWithRedirects("/Home/Error?code={0}");
+                string alias = Configuration.GetValue<string>("AppSetting:WebsiteAlias");
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        var exceptionHandlerPathFeature =
+                            context.Features.Get<IExceptionHandlerPathFeature>();
+                        context.Response.Redirect("/" + alias + "/Home/Error?code=500&errorMessage=" + exceptionHandlerPathFeature?.Error.Message);
+                    });
+                });
+                app.UseStatusCodePagesWithRedirects("/" + alias + "/Home/Error?code={0}");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }

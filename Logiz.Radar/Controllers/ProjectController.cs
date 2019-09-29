@@ -191,6 +191,11 @@ namespace Logiz.Radar.Controllers
                 return Forbid();
             }
 
+            if (await _context.TestScenario.AnyAsync(i => i.ProjectID.Equals(id, StringComparison.OrdinalIgnoreCase)))
+            {
+                return RedirectToAction("Error", "Home", new { errorMessage = "All scenarios of this project must be deleted first." });
+            }
+
             var project = await _context.Project.FindAsync(id);
             _context.Project.Remove(project);
             await _context.SaveChangesAsync();

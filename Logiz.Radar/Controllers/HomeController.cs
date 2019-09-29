@@ -26,9 +26,10 @@ namespace Logiz.Radar.Controllers
 
         [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error(string code)
+        public IActionResult Error(string code, string errorMessage)
         {
             ViewBag.ErrorCode = code;
+            ViewBag.ErrorMessage = errorMessage;
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
