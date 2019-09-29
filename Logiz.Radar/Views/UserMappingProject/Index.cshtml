@@ -74,7 +74,7 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = rootUrl + "Project/GetProjectSelectList";
+            var url = "/" + websiteAlias + "/Project/GetProjectSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();

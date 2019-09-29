@@ -198,6 +198,8 @@ namespace Logiz.Radar.Controllers
 
             var project = await _context.Project.FindAsync(id);
             _context.Project.Remove(project);
+            var assignments = await _context.UserMappingProject.Where(i => i.ProjectID.Equals(project.ID, StringComparison.OrdinalIgnoreCase)).ToListAsync();
+            _context.UserMappingProject.RemoveRange(assignments);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

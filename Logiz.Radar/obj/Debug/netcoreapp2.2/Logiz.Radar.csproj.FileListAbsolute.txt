@@ -53,11 +53,13 @@ D:\workspace\Logiz.Radar\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csproj.
 D:\workspace\Logiz.Radar\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\Details.g.cshtml.cs
 D:\workspace\Logiz.Radar\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csprojAssemblyReference.cache
 D:\workspace\Logiz.Radar\Logiz.Radar\obj\Debug\netcoreapp2.2\Razor\Views\TestCase\Import.g.cshtml.cs
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.dll
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.Views.dll
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.deps.json
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.runtimeconfig.json
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.runtimeconfig.dev.json
+D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.dll
+D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.pdb
+D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.Views.dll
+D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.Views.pdb
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csproj.CoreCompileInputs.cache
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.RazorAssemblyInfo.cache
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.RazorAssemblyInfo.cs
@@ -104,7 +106,4 @@ D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.R
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.Views.pdb
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.dll
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.pdb
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.pdb
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\bin\Debug\netcoreapp2.2\Logiz.Radar.Views.pdb
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csproj.CopyComplete
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csprojAssemblyReference.cache

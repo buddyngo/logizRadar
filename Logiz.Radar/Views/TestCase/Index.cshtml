@@ -149,7 +149,7 @@
         });
 
         function loadProject() {
-            var url = rootUrl + "Project/GetProjectSelectList";
+            var url = "/" + websiteAlias + "/Project/GetProjectSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -162,7 +162,7 @@
         };
 
         function loadTestStatus() {
-            var url = rootUrl + "TestCase/GetTestStatusSelectList";
+            var url = "/" + websiteAlias + "/TestCase/GetTestStatusSelectList";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a status -</option>';
                 $("#TestStatus").empty();
@@ -176,7 +176,7 @@
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
+            var url = "/" + websiteAlias + "/TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
                 var itemCodeList = [];
@@ -198,7 +198,7 @@
 
         function loadVariant() {
             var scenarioId = $("#ScenarioID").val();
-            var url = rootUrl + "TestVariant/GetTestVariantSelectList";
+            var url = "/" + websiteAlias + "/TestVariant/GetTestVariantSelectList";
             $.getJSON(url, { ScenarioId: scenarioId }, function (data) {
                 var item = '<option value="">- Select a variant -</option>';
                 var itemCodeList = [];

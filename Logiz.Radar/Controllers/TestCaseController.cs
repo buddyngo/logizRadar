@@ -344,6 +344,7 @@ namespace Logiz.Radar.Controllers
             return View(testCaseViewModel);
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> DownloadAttachment(string id)
         {
             var attachment = await _context.TestCaseAttachment.FirstOrDefaultAsync(i => i.ID == id);

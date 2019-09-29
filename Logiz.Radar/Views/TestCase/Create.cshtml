@@ -103,7 +103,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
-            var url = rootUrl + "Project/GetProjectSelectList?onlyCanWrite=true";
+            var url = "/" + websiteAlias + "/Project/GetProjectSelectList?onlyCanWrite=true";
             $.getJSON(url, function (data) {
                 var item = '<option value="">- Select a project -</option>';
                 $("#ProjectID").empty();
@@ -123,7 +123,7 @@
 
         $("#ProjectID").change(function () {
             var projectId = $("#ProjectID").val();
-            var url = rootUrl + "TestScenario/GetTestScenarioSelectList";
+            var url = "/" + websiteAlias + "/TestScenario/GetTestScenarioSelectList";
             $.getJSON(url, { ProjectId: projectId }, function (data) {
                 var item = '<option value="">- Select a scenario -</option>';
                 $("#ScenarioID").empty();
@@ -147,7 +147,7 @@
 
         function loadVariant() {
             var scenarioId = $("#ScenarioID").val();
-            var url = rootUrl + "TestVariant/GetTestVariantSelectList";
+            var url = "/" + websiteAlias + "/TestVariant/GetTestVariantSelectList";
             $.getJSON(url, { ScenarioId: scenarioId }, function (data) {
                 var item = '<option value="">- Select a variant -</option>';
                 $("#TestCase_TestVariantID").empty();
@@ -166,7 +166,7 @@
         }
 
         $(document).ready(function () {
-            var url = rootUrl + "TestCase/GetTestStatusSelectList";
+            var url = "/" + websiteAlias + "/TestCase/GetTestStatusSelectList";
             $.getJSON(url, function (data) {
                 var item = '';
                 $("#TestCase_TestStatus").empty();
