@@ -143,7 +143,6 @@ namespace Logiz.Radar.Controllers
                 if (clonedTestCase != null)
                 {
                     clonedTestCase.TestCase.SetCreator(User.Identity.Name);
-                    clonedTestCase.TestCase.PlannedDate = new DateTime();
                     return View(clonedTestCase);
                 }
             }
@@ -171,6 +170,12 @@ namespace Logiz.Radar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string ProjectID, string ScenarioID, [Bind("TestCaseName,TestVariantID,TestCaseSteps,ExpectedResult,ActualResult,TesterName,PlannedDate,TestStatus,Note,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] TestCase testCase)
         {
+            DateTime minDate = new DateTime(2000, 1, 1);
+            if (testCase?.PlannedDate < minDate)
+            {
+                ModelState.AddModelError("TestCase.PlannedDate", $"PlannedDate must be >= {minDate.ToString("yyyy/MM/dd")}");
+            }
+
             if (ModelState.IsValid)
             {
                 testCase.SetCreator(User.Identity.Name);
@@ -247,6 +252,7 @@ namespace Logiz.Radar.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, string ProjectID, string ScenarioID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate, List<IFormFile> files,
+            List<TestCaseAttachment> TestCaseAttachments,
             [Bind("TestCaseName,TestVariantID,TestCaseSteps,ExpectedResult,ActualResult,TesterName,PlannedDate,TestStatus,Note,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] TestCase testCase)
         {
             if (id != testCase.ID)
@@ -262,6 +268,12 @@ namespace Logiz.Radar.Controllers
             if (!CanWrite(User.Identity.Name, ProjectID))
             {
                 return Forbid();
+            }
+
+            DateTime minDate = new DateTime(2000, 1, 1);
+            if (testCase?.PlannedDate < minDate)
+            {
+                ModelState.AddModelError("TestCase.PlannedDate", $"PlannedDate must be >= {minDate.ToString("yyyy/MM/dd")}");
             }
 
             if (ModelState.IsValid)
@@ -339,7 +351,8 @@ namespace Logiz.Radar.Controllers
                 SearchTestStatus = SearchTestStatus,
                 FromUpdatedDate = FromUpdatedDate,
                 ToUpdatedDate = ToUpdatedDate,
-                TestCase = testCase
+                TestCase = testCase,
+                TestCaseAttachments = TestCaseAttachments
             };
             return View(testCaseViewModel);
         }
