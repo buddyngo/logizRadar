@@ -66,6 +66,14 @@ namespace Logiz.Radar.Models
             }
         }
 
+        public decimal DonePercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Failed) * 100, Passed + Failed + Open + Pending + Hold), 0);
+            }
+        }
+
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public List<TestReportByScenario> ReportByScenario { get; set; }
@@ -90,7 +98,7 @@ namespace Logiz.Radar.Models
                 return Passed + Failed + Open + Pending + Hold + Canceled;
             }
         }
-        public decimal CompletenessPercentage
+        public decimal DonePercentage
         {
             get
             {

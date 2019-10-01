@@ -282,37 +282,37 @@ namespace Logiz.Radar.Controllers
                 {
                     testCase.SetUpdater(User.Identity.Name);
                     _context.Update(testCase);
-                    List<TestCaseAttachment> attachments = new List<TestCaseAttachment>();
-                    string subFolder = Path.Combine("datafile/testCaseAttachment/", ProjectID, ScenarioID, id);
-                    string fullFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", subFolder);
-                    if (!Directory.Exists(fullFolder))
+                    if (files.Count > 0)
                     {
-                        Directory.CreateDirectory(fullFolder);
-                    }
-                    foreach (var formFile in files)
-                    {
-                        if (formFile.Length > 0)
+                        List<TestCaseAttachment> attachments = new List<TestCaseAttachment>();
+                        string subFolder = Path.Combine("datafile/testCaseAttachment/", ProjectID, ScenarioID, id);
+                        string fullFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", subFolder);
+                        if (!Directory.Exists(fullFolder))
                         {
-                            string filename = Guid.NewGuid().ToString() + Path.GetExtension(formFile.FileName);
-                            string fullPath = Path.Combine(fullFolder, filename);
-                            string filePath = Path.Combine(subFolder, filename);
-                            using (var stream = new FileStream(fullPath, FileMode.Create))
+                            Directory.CreateDirectory(fullFolder);
+                        }
+                        foreach (var formFile in files)
+                        {
+                            if (formFile.Length > 0)
                             {
-                                await formFile.CopyToAsync(stream);
-                                var attachment = new TestCaseAttachment()
+                                string filename = Guid.NewGuid().ToString() + Path.GetExtension(formFile.FileName);
+                                string fullPath = Path.Combine(fullFolder, filename);
+                                string filePath = Path.Combine(subFolder, filename);
+                                using (var stream = new FileStream(fullPath, FileMode.Create))
                                 {
-                                    TestCaseID = testCase.ID,
-                                    OriginalFileName = formFile.FileName,
-                                    FullFileName = filePath,
-                                    ContentType = formFile.ContentType
-                                };
-                                attachment.SetCreator(User.Identity.Name);
-                                attachments.Add(attachment);
+                                    await formFile.CopyToAsync(stream);
+                                    var attachment = new TestCaseAttachment()
+                                    {
+                                        TestCaseID = testCase.ID,
+                                        OriginalFileName = formFile.FileName,
+                                        FullFileName = filePath,
+                                        ContentType = formFile.ContentType
+                                    };
+                                    attachment.SetCreator(User.Identity.Name);
+                                    attachments.Add(attachment);
+                                }
                             }
                         }
-                    }
-                    if (attachments.Count > 0)
-                    {
                         _context.TestCaseAttachment.AddRange(attachments);
                     }
                     await _context.SaveChangesAsync();

@@ -18,6 +18,11 @@
                     End Date
                 </th>
                 <th>
+                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                        % Done
+                    </span>
+                </th>
+                <th>
                     Total
                 </th>
                 <th>
@@ -59,6 +64,9 @@
                     }
                 </td>
                 <td>
+                    @Model.DonePercentage%
+                </td>
+                <td>
                     @Model.Total
                 </td>
                 <td>
@@ -81,6 +89,7 @@
                 </td>
             </tr>
             <tr>
+                <td></td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -122,12 +131,12 @@
                     End Date
                 </th>
                 <th>
-                    Total
+                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                        % Done
+                    </span>
                 </th>
                 <th>
-                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
-                        % Completeness
-                    </span>
+                    Total
                 </th>
                 <th>
                     Passed
@@ -153,7 +162,7 @@
             @foreach (var item in Model.ReportByScenario)
             {
                 <tr>
-                    <td>
+                    <td data-toggle="tooltip" title="Scenario" style="cursor:pointer">
                         @if (item.StartDate <= DateTime.Today && DateTime.Today <= item.EndDate)
                         {
                             <b>
@@ -165,7 +174,7 @@
                             @item.ScenarioName
                         }
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Start Date" style="cursor:pointer">
                         @if (item.StartDate.HasValue)
                         {
                             <text>
@@ -173,7 +182,7 @@
                             </text>
                         }
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="End Date" style="cursor:pointer">
                         @if (item.EndDate.HasValue)
                         {
                             <text>
@@ -181,28 +190,28 @@
                             </text>
                         }
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="% Done" style="cursor:pointer">
+                        @item.DonePercentage%
+                    </td>
+                    <td data-toggle="tooltip" title="Total" style="cursor:pointer">
                         @item.Total
                     </td>
-                    <td>
-                        @item.CompletenessPercentage%
-                    </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Passed" style="cursor:pointer">
                         @item.Passed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Canceled" style="cursor:pointer">
                         @item.Canceled
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Failed" style="cursor:pointer">
                         @item.Failed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Pending" style="cursor:pointer">
                         @item.Pending
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Open" style="cursor:pointer">
                         @item.Open
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Hold" style="cursor:pointer">
                         @item.Hold
                     </td>
                 </tr>
@@ -220,12 +229,12 @@
                     Planned Date
                 </th>
                 <th>
-                    Total
+                    <span data-toggle="tooltip" title="(Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                        % Workload
+                    </span>
                 </th>
                 <th>
-                    <span data-toggle="tooltip" title="(Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
-                        Workload
-                    </span>
+                    Total
                 </th>
                 <th>
                     Passed
@@ -251,7 +260,7 @@
             @foreach (var item in Model.ReportByPlannedDate)
             {
                 <tr>
-                    <td>
+                    <td data-toggle="tooltip" title="Planned Date" style="cursor:pointer">
                         @if (item.PlannedDate.Date == DateTime.Today)
                         {
                             <b>
@@ -263,28 +272,28 @@
                             @item.PlannedDate.ToString("yyyy/MM/dd")
                         }
                     </td>
-                    <td>
-                        @item.Total
-                    </td>
-                    <td>
+                    <td data-toggle="tooltip" title="% Workload = (Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
                         @item.WorkloadPercentage%
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Total" style="cursor:pointer">
+                        @item.Total
+                    </td>
+                    <td data-toggle="tooltip" title="Passed" style="cursor:pointer">
                         @item.Passed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Canceled" style="cursor:pointer">
                         @item.Canceled
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Failed" style="cursor:pointer">
                         @item.Failed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Pending" style="cursor:pointer">
                         @item.Pending
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Open" style="cursor:pointer">
                         @item.Open
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Hold" style="cursor:pointer">
                         @item.Hold
                     </td>
                 </tr>
@@ -302,12 +311,12 @@
                     Planned Date
                 </th>
                 <th>
-                    Total
+                    <span data-toggle="tooltip" title="Running sum of % Workload" style="cursor:pointer">
+                        % Workload
+                    </span>
                 </th>
                 <th>
-                    <span data-toggle="tooltip" title="Running sum of Workload" style="cursor:pointer">
-                        Workload
-                    </span>
+                    Total
                 </th>
                 <th>
                     Passed
@@ -334,7 +343,7 @@
             @foreach (var item in Model.ReportByPlannedDateAccumulation)
             {
                 <tr>
-                    <td>
+                    <td data-toggle="tooltip" title="Planned Date" style="cursor:pointer">
                         @if (item.PlannedDate.Date == DateTime.Today)
                         {
                             <b>
@@ -346,28 +355,28 @@
                             @item.PlannedDate.ToString("yyyy/MM/dd")
                         }
                     </td>
-                    <td>
-                        @item.Total
-                    </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Running sum of % Workload" style="cursor:pointer">
                         @item.WorkloadPercentage%
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Total" style="cursor:pointer">
+                        @item.Total
+                    </td>
+                    <td data-toggle="tooltip" title="Passed" style="cursor:pointer">
                         @item.Passed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Canceled" style="cursor:pointer">
                         @item.Canceled
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Failed" style="cursor:pointer">
                         @item.Failed
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Pending" style="cursor:pointer">
                         @item.Pending
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Open" style="cursor:pointer">
                         @item.Open
                     </td>
-                    <td>
+                    <td data-toggle="tooltip" title="Hold" style="cursor:pointer">
                         @item.Hold
                     </td>
                 </tr>
