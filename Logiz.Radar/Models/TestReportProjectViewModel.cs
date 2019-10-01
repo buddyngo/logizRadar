@@ -114,7 +114,7 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Open + Pending + Hold) * 100, Total), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Open + Pending + Hold) * 100, Passed + Failed + Open + Pending + Hold), 0);
             }
         }
     }
