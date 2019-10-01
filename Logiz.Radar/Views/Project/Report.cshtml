@@ -125,6 +125,11 @@
                     Total
                 </th>
                 <th>
+                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                        % Completeness
+                    </span>
+                </th>
+                <th>
                     Passed
                 </th>
                 <th>
@@ -180,6 +185,9 @@
                         @item.Total
                     </td>
                     <td>
+                        @item.CompletenessPercentage%
+                    </td>
+                    <td>
                         @item.Passed
                     </td>
                     <td>
@@ -215,7 +223,9 @@
                     Total
                 </th>
                 <th>
-                    Workload
+                    <span data-toggle="tooltip" title="(Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                        Workload
+                    </span>
                 </th>
                 <th>
                     Passed
@@ -295,7 +305,9 @@
                     Total
                 </th>
                 <th>
-                    Workload
+                    <span data-toggle="tooltip" title="Running sum of Workload" style="cursor:pointer">
+                        Workload
+                    </span>
                 </th>
                 <th>
                     Passed
