@@ -17,10 +17,8 @@
                 <th>
                     End Date
                 </th>
-                <th>
-                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
-                        % Done
-                    </span>
+                <th data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Hold)" style="cursor:pointer">
+                    % Done
                 </th>
                 <th>
                     Total
@@ -130,10 +128,8 @@
                 <th>
                     End Date
                 </th>
-                <th>
-                    <span data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
-                        % Done
-                    </span>
+                <th data-toggle="tooltip" title="(Passed+Failed)/(Passed+Failed+Pending+Open+Hold)" style="cursor:pointer">
+                    % Done
                 </th>
                 <th>
                     Total
@@ -190,7 +186,7 @@
                             </text>
                         }
                     </td>
-                    <td data-toggle="tooltip" title="% Done" style="cursor:pointer">
+                    <td data-toggle="tooltip" title="% Done = (Passed+Failed)/(Passed+Failed+Pending+Open+Hold)" style="cursor:pointer">
                         @item.DonePercentage%
                     </td>
                     <td data-toggle="tooltip" title="Total" style="cursor:pointer">
@@ -228,10 +224,8 @@
                 <th>
                     Planned Date
                 </th>
-                <th>
-                    <span data-toggle="tooltip" title="(Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
-                        % Workload
-                    </span>
+                <th data-toggle="tooltip" title="(Pending+Open+Hold)/(Passed+Failed+Pending+Open+Hold)" style="cursor:pointer">
+                    % Workload
                 </th>
                 <th>
                     Total
@@ -272,7 +266,7 @@
                             @item.PlannedDate.ToString("yyyy/MM/dd")
                         }
                     </td>
-                    <td data-toggle="tooltip" title="% Workload = (Pending+Open+Hold)/(Passed+Failed+Pending+Open+Failed)" style="cursor:pointer">
+                    <td data-toggle="tooltip" title="% Workload = (Pending+Open+Hold)/(Passed+Failed+Pending+Open+Hold)" style="cursor:pointer">
                         @item.WorkloadPercentage%
                     </td>
                     <td data-toggle="tooltip" title="Total" style="cursor:pointer">
@@ -310,10 +304,8 @@
                 <th>
                     Planned Date
                 </th>
-                <th>
-                    <span data-toggle="tooltip" title="Running sum of % Workload" style="cursor:pointer">
-                        % Workload
-                    </span>
+                <th data-toggle="tooltip" title="Running sum of % Workload" style="cursor:pointer">
+                    % Workload
                 </th>
                 <th>
                     Total
