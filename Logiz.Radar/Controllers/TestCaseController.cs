@@ -19,10 +19,30 @@ namespace Logiz.Radar.Controllers
     {
         public const string Passed = "Passed";
         public const string Failed = "Failed";
+        public const string Fixed = "Fixed";
         public const string Open = "Open";
         public const string Pending = "Pending";
         public const string Hold = "Hold";
         public const string Canceled = "Canceled";
+
+        public static string GetTestStatusesString()
+        {
+            return $"{Passed}, {Failed}, {Fixed}, {Open}, {Pending}, {Hold}, {Canceled}";
+        }
+
+        public static List<string> GetTestStatusesList()
+        {
+            var testStatusList = new List<string>() {
+                TestStatuses.Passed,
+                TestStatuses.Failed,
+                TestStatuses.Fixed,
+                TestStatuses.Open,
+                TestStatuses.Pending,
+                TestStatuses.Hold,
+                TestStatuses.Canceled
+            };
+            return testStatusList;
+        }
     }
 
     [Authorize]
@@ -68,6 +88,7 @@ namespace Logiz.Radar.Controllers
                                   orderby testCase.PlannedDate, testCase.TestCaseName
                                   select new TestCaseViewModel
                                   {
+                                      ScenarioID = scenario.ID,
                                       ScenarioName = scenario.ScenarioName,
                                       VariantName = variant.VariantName,
                                       HasAttachment = leftAttachment != null ? true : false,
@@ -96,12 +117,6 @@ namespace Logiz.Radar.Controllers
                 {
                     var ws = p.Workbook.Worksheets["TestCase"];
                     int totalCases = caseList.Count;
-                    ws.Cells[1, 11].Value = "ScenarioName";
-                    ws.Cells[1, 12].Value = "HasAttachment";
-                    ws.Cells[1, 13].Value = "CreatedBy";
-                    ws.Cells[1, 14].Value = "CreatedDateTime";
-                    ws.Cells[1, 15].Value = "UpdatedBy";
-                    ws.Cells[1, 16].Value = "UpdatedDateTime";
                     for (int i = 0; i < totalCases; i++)
                     {
                         ws.Cells[i + 2, 1].Value = caseList[i].VariantName;
@@ -112,13 +127,15 @@ namespace Logiz.Radar.Controllers
                         ws.Cells[i + 2, 6].Value = caseList[i].TestCase.TesterName;
                         ws.Cells[i + 2, 7].Value = caseList[i].TestCase.PlannedDate;
                         ws.Cells[i + 2, 8].Value = caseList[i].TestCase.TestStatus;
-                        ws.Cells[i + 2, 9].Value = caseList[i].TestCase.ID;
-                        ws.Cells[i + 2, 11].Value = caseList[i].ScenarioName;
-                        ws.Cells[i + 2, 12].Value = caseList[i].HasAttachment;
-                        ws.Cells[i + 2, 13].Value = caseList[i].TestCase.CreatedBy;
-                        ws.Cells[i + 2, 14].Value = caseList[i].TestCase.CreatedDateTime;
-                        ws.Cells[i + 2, 15].Value = caseList[i].TestCase.UpdatedBy;
-                        ws.Cells[i + 2, 16].Value = caseList[i].TestCase.UpdatedDateTime;
+                        ws.Cells[i + 2, 9].Value = caseList[i].ScenarioID;
+                        ws.Cells[i + 2, 10].Value = caseList[i].TestCase.ID;
+                        //Column 11 for system validation
+                        ws.Cells[i + 2, 12].Value = caseList[i].ScenarioName;
+                        ws.Cells[i + 2, 13].Value = caseList[i].HasAttachment;
+                        ws.Cells[i + 2, 14].Value = caseList[i].TestCase.CreatedBy;
+                        ws.Cells[i + 2, 15].Value = caseList[i].TestCase.CreatedDateTime;
+                        ws.Cells[i + 2, 16].Value = caseList[i].TestCase.UpdatedBy;
+                        ws.Cells[i + 2, 17].Value = caseList[i].TestCase.UpdatedDateTime;
                     }
                     string fileNameToExport = "logiz.radar.test-case_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
                     return File(p.GetAsByteArray(), "application/excel", fileNameToExport);
@@ -629,7 +646,7 @@ namespace Logiz.Radar.Controllers
         public JsonResult GetTestStatusSelectList()
         {
             var statusList = new List<SelectListItem>();
-            var list = GetTestStatusList();
+            var list = TestStatuses.GetTestStatusesList();
             foreach (var s in list)
             {
                 statusList.Add(new SelectListItem()
@@ -640,19 +657,6 @@ namespace Logiz.Radar.Controllers
             }
             var statusSelectList = new SelectList(statusList, "Value", "Text");
             return Json(statusSelectList);
-        }
-
-        public List<string> GetTestStatusList()
-        {
-            var testStatusList = new List<string>() {
-                TestStatuses.Passed,
-                TestStatuses.Failed,
-                TestStatuses.Open,
-                TestStatuses.Pending,
-                TestStatuses.Hold,
-                TestStatuses.Canceled
-            };
-            return testStatusList;
         }
 
         public bool CanWrite(string username, string projectID)
@@ -679,7 +683,7 @@ namespace Logiz.Radar.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Import([Bind("ProjectID, ScenarioID, DataFile")] ImportTestCaseViewModel importModel)
+        public async Task<IActionResult> Import([Bind("ProjectID, DataFile")] ImportTestCaseViewModel importModel)
         {
             if (ModelState.IsValid)
             {
@@ -688,29 +692,10 @@ namespace Logiz.Radar.Controllers
                     return Forbid();
                 }
 
-                var scenario = await (from s in _context.TestScenario.Where(i => i.ID.Equals(importModel.ScenarioID, StringComparison.OrdinalIgnoreCase) && i.IsActive)
-                                      join p in _context.Project.Where(i => i.ID.Equals(importModel.ProjectID, StringComparison.OrdinalIgnoreCase) && i.IsActive)
-                                      on s.ProjectID equals p.ID
-                                      select s).FirstOrDefaultAsync();
-
-                if (scenario == null)
-                {
-                    return NotFound();
-                }
-
                 using (var stream = importModel.DataFile.OpenReadStream())
                 {
                     using (var excelPackage = new ExcelPackage(stream))
                     {
-                        int errorCount = 0;
-                        var newTestCaseList = new List<TestCase>();
-                        var newVariantList = new List<TestVariant>();
-                        var existingVariantList = await _context.TestVariant.Where(i => i.ScenarioID.Equals(importModel.ScenarioID, StringComparison.OrdinalIgnoreCase)).ToListAsync();
-                        var existingTestCaseList = await (from testCase in _context.TestCase
-                                                          join variant in existingVariantList
-                                                          on testCase.TestVariantID equals variant.ID
-                                                          select testCase).ToListAsync();
-                        var updatedTestCaseList = new List<TestCase>();
                         var workSheet = excelPackage.Workbook.Worksheets["TestCase"];
 
                         if (workSheet == null)
@@ -719,110 +704,141 @@ namespace Logiz.Radar.Controllers
                             return View(importModel);
                         }
 
-                        int rows = workSheet.Dimension.Rows;
-                        var statusList = GetTestStatusList();
-                        var statusString = string.Empty;
-                        foreach (var s in statusList)
+                        int rowCount = workSheet.Dimension.Rows;
+                        List<TestCaseViewModel> inputTestCaseList = new List<TestCaseViewModel>();
+
+                        for (int i = 2; i < rowCount; i++)
                         {
-                            statusString += s + ", ";
+                            var inputTestCase = new TestCaseViewModel()
+                            {
+                                Index = i,
+                                ScenarioID = workSheet.Cells[i, 9].GetValue<string>(),
+                                VariantName = workSheet.Cells[i, 1].GetValue<string>(),
+                                TestCase = new TestCase()
+                                {
+                                    ID = workSheet.Cells[i, 10].GetValue<string>(),
+                                    TestCaseName = workSheet.Cells[i, 2].GetValue<string>(),
+                                    TestCaseSteps = workSheet.Cells[i, 3].GetValue<string>(),
+                                    ExpectedResult = workSheet.Cells[i, 4].GetValue<string>(),
+                                    ActualResult = workSheet.Cells[i, 5].GetValue<string>(),
+                                    TesterName = workSheet.Cells[i, 6].GetValue<string>(),
+                                    PlannedDate = workSheet.Cells[i, 7].GetValue<DateTime>().Date,
+                                    TestStatus = workSheet.Cells[i, 8].GetValue<string>()
+                                }
+                            };
+                            inputTestCaseList.Add(inputTestCase);
                         }
-                        if (statusString.Length > 0)
-                        {
-                            statusString = statusString.Remove(statusString.Length - 2);
-                        }
-                        for (var i = 2; i <= rows; i++)
+
+                        int errorCount = 0;
+                        var newVariantList = new List<TestVariant>();
+                        var newTestCaseList = new List<TestCase>();
+                        var updatedTestCaseList = new List<TestCase>();
+                        var inputScenarioIDList = inputTestCaseList.Select(i => new { i.ScenarioID }).Distinct().ToList();
+                        var existingScenarioList = await (from s in _context.TestScenario
+                                                          join iS in inputScenarioIDList
+                                                          on s.ID equals iS.ScenarioID
+                                                          select s).ToListAsync();
+                        var inputVariantIDList = inputTestCaseList.Select(i => new { i.ScenarioID, i.VariantName }).Distinct().ToList();
+                        var existingVariantList = await (from v in _context.TestVariant
+                                                         join iv in inputVariantIDList
+                                                         on new { v.ScenarioID, v.VariantName } equals new { iv.ScenarioID, iv.VariantName }
+                                                         select v).ToListAsync();
+                        var inputTestCaseIDList = inputTestCaseList.Select(i => new { i.TestCase.ID }).Distinct().ToList();
+                        var existingTestCaseList = await (from c in _context.TestCase
+                                                          join ic in inputTestCaseIDList
+                                                          on c.ID equals ic.ID
+                                                          select c).ToListAsync();
+
+                        foreach (var inputTestCase in inputTestCaseList)
                         {
                             string errorMessage = string.Empty;
 
-                            string variantName = workSheet.Cells[i, 1].GetValue<string>();
-                            if (string.IsNullOrEmpty(variantName))
+                            if (string.IsNullOrEmpty(inputTestCase.VariantName))
                             {
                                 errorCount++;
-                                errorMessage += "TestVariantName is required. ";
+                                errorMessage += "TestVariant is required. ";
                             }
 
-                            string testCaseName = workSheet.Cells[i, 2].GetValue<string>();
-                            if (string.IsNullOrEmpty(testCaseName))
+                            if (string.IsNullOrEmpty(inputTestCase.TestCase.TestCaseName))
                             {
                                 errorCount++;
                                 errorMessage += "TestCaseName is required. ";
                             }
 
-                            string testCaseSteps = workSheet.Cells[i, 3].GetValue<string>();
-                            if (string.IsNullOrEmpty(testCaseSteps))
+                            if (string.IsNullOrEmpty(inputTestCase.TestCase.TestCaseSteps))
                             {
                                 errorCount++;
                                 errorMessage += "TestCaseSteps is required. ";
                             }
 
-                            string expectedResult = workSheet.Cells[i, 4].GetValue<string>();
-                            if (string.IsNullOrEmpty(expectedResult))
+                            if (string.IsNullOrEmpty(inputTestCase.TestCase.ExpectedResult))
                             {
                                 errorCount++;
                                 errorMessage += "ExpectedResult is required. ";
                             }
 
-                            string actualResult = workSheet.Cells[i, 5].GetValue<string>();
-
-                            string testerName = workSheet.Cells[i, 6].GetValue<string>();
-                            if (string.IsNullOrEmpty(testerName))
+                            if (string.IsNullOrEmpty(inputTestCase.TestCase.TesterName))
                             {
                                 errorCount++;
                                 errorMessage += "TesterName is required. ";
                             }
 
-                            DateTime? plannedDate = new DateTime(2000, 1, 1);
                             var minDate = new DateTime(2000, 1, 1);
-                            try
-                            {
-                                plannedDate = workSheet.Cells[i, 7].GetValue<DateTime>().Date;
-                                if (!plannedDate.HasValue || plannedDate.Value < minDate)
-                                {
-                                    errorCount++;
-                                    errorMessage += $"PlannedDate must be >= {minDate.ToString("yyyy/MM/dd")}. ";
-                                }
-                            }
-                            catch
+                            if (inputTestCase.TestCase.PlannedDate < minDate)
                             {
                                 errorCount++;
                                 errorMessage += $"PlannedDate must be a Date value >= {minDate.ToString("yyyy/MM/dd")}. ";
                             }
 
-                            string testStatus = workSheet.Cells[i, 8].GetValue<string>();
-                            if (!statusList.Contains(testStatus))
+                            if (!TestStatuses.GetTestStatusesList().Contains(inputTestCase.TestCase.TestStatus))
                             {
                                 errorCount++;
-                                errorMessage += $"TestStatus must be {statusString}. ";
+                                errorMessage += $"TestStatus must be {TestStatuses.GetTestStatusesString()}. ";
                             }
 
-                            string testCaseID = workSheet.Cells[i, 9].GetValue<string>();
-                            TestCase updatedTestCase = null;
-                            if (!string.IsNullOrEmpty(testCaseID))
+                            if (string.IsNullOrEmpty(inputTestCase.ScenarioID))
                             {
-                                updatedTestCase = existingTestCaseList.FirstOrDefault(c => c.ID.Equals(testCaseID, StringComparison.OrdinalIgnoreCase));
+                                errorCount++;
+                                errorMessage += "ScenarioID is required. ";
+                            }
+                            else
+                            {
+                                if (!existingScenarioList.Any(c => c.ID.Equals(inputTestCase.ScenarioID, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    errorCount++;
+                                    errorMessage += "ScenarioID is invalid. ";
+                                }
+                            }
+
+                            TestCase updatedTestCase = null;
+                            if (!string.IsNullOrEmpty(inputTestCase.TestCase.ID))
+                            {
+                                updatedTestCase = existingTestCaseList.FirstOrDefault(c => c.ID.Equals(inputTestCase.TestCase.ID, StringComparison.OrdinalIgnoreCase));
                                 if (updatedTestCase == null)
                                 {
                                     errorCount++;
-                                    errorMessage += "TestCaseID is not found. ";
+                                    errorMessage += "TestCaseID is invalid. ";
                                 }
                             }
 
                             if (!string.IsNullOrEmpty(errorMessage))
                             {
-                                workSheet.Cells[i, 10].Value = errorMessage;
+                                workSheet.Cells[inputTestCase.Index, 11].Value = errorMessage;
                             }
                             else
                             {
-                                var variant = existingVariantList.FirstOrDefault(v => v.VariantName.Equals(variantName, StringComparison.OrdinalIgnoreCase));
+                                var variant = existingVariantList.FirstOrDefault(v => v.VariantName.Equals(inputTestCase.VariantName, StringComparison.OrdinalIgnoreCase)
+                                                                                    && v.ScenarioID.Equals(inputTestCase.ScenarioID, StringComparison.OrdinalIgnoreCase));
                                 if (variant == null)
                                 {
-                                    variant = newVariantList.FirstOrDefault(v => v.VariantName.Equals(variantName, StringComparison.OrdinalIgnoreCase));
+                                    variant = newVariantList.FirstOrDefault(v => v.VariantName.Equals(inputTestCase.VariantName, StringComparison.OrdinalIgnoreCase)
+                                                                                    && v.ScenarioID.Equals(inputTestCase.ScenarioID, StringComparison.OrdinalIgnoreCase));
                                     if (variant == null)
                                     {
                                         variant = new TestVariant()
                                         {
-                                            ScenarioID = importModel.ScenarioID,
-                                            VariantName = variantName
+                                            ScenarioID = inputTestCase.ScenarioID,
+                                            VariantName = inputTestCase.VariantName
                                         };
                                         variant.SetCreator(User.Identity.Name);
                                         newVariantList.Add(variant);
@@ -832,13 +848,13 @@ namespace Logiz.Radar.Controllers
                                 if (updatedTestCase != null)
                                 {
                                     updatedTestCase.TestVariantID = variant.ID;
-                                    updatedTestCase.TestCaseName = testCaseName;
-                                    updatedTestCase.TestCaseSteps = testCaseSteps;
-                                    updatedTestCase.ExpectedResult = expectedResult;
-                                    updatedTestCase.ActualResult = actualResult;
-                                    updatedTestCase.TesterName = testerName;
-                                    updatedTestCase.PlannedDate = plannedDate.Value;
-                                    updatedTestCase.TestStatus = testStatus;
+                                    updatedTestCase.TestCaseName = inputTestCase.TestCase.TestCaseName;
+                                    updatedTestCase.TestCaseSteps = inputTestCase.TestCase.TestCaseSteps;
+                                    updatedTestCase.ExpectedResult = inputTestCase.TestCase.ExpectedResult;
+                                    updatedTestCase.ActualResult = inputTestCase.TestCase.ActualResult;
+                                    updatedTestCase.TesterName = inputTestCase.TestCase.TesterName;
+                                    updatedTestCase.PlannedDate = inputTestCase.TestCase.PlannedDate;
+                                    updatedTestCase.TestStatus = inputTestCase.TestCase.TestStatus;
                                     updatedTestCase.SetUpdater(User.Identity.Name);
                                     updatedTestCaseList.Add(updatedTestCase);
                                 }
@@ -847,13 +863,13 @@ namespace Logiz.Radar.Controllers
                                     var newTestCase = new TestCase()
                                     {
                                         TestVariantID = variant.ID,
-                                        TestCaseName = testCaseName,
-                                        TestCaseSteps = testCaseSteps,
-                                        ExpectedResult = expectedResult,
-                                        ActualResult = actualResult,
-                                        TesterName = testerName,
-                                        PlannedDate = plannedDate.Value,
-                                        TestStatus = testStatus
+                                        TestCaseName = inputTestCase.TestCase.TestCaseName,
+                                        TestCaseSteps = inputTestCase.TestCase.TestCaseSteps,
+                                        ExpectedResult = inputTestCase.TestCase.ExpectedResult,
+                                        ActualResult = inputTestCase.TestCase.ActualResult,
+                                        TesterName = inputTestCase.TestCase.TesterName,
+                                        PlannedDate = inputTestCase.TestCase.PlannedDate,
+                                        TestStatus = inputTestCase.TestCase.TestStatus
                                     };
                                     newTestCase.SetCreator(User.Identity.Name);
                                     newTestCaseList.Add(newTestCase);
@@ -872,7 +888,7 @@ namespace Logiz.Radar.Controllers
                         await _context.SaveChangesAsync();
                     }
                 }
-                return RedirectToAction(nameof(Index), new { ProjectID = importModel.ProjectID, ScenarioID = importModel.ScenarioID });
+                return RedirectToAction(nameof(Index), new { ProjectID = importModel.ProjectID });
             }
             return View(importModel);
         }

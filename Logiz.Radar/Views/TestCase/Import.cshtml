@@ -14,22 +14,17 @@
         <form asp-action="Import" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="ProjectID" class="control-label"></label>
+                <label asp-for="ProjectID" class="control-label"></label> (*)
                 <select asp-for="ProjectID" class="form-control"></select>
                 <span asp-validation-for="ProjectID" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ScenarioID" class="control-label"></label>
-                <select asp-for="ScenarioID" class="form-control"></select>
-                <span asp-validation-for="ScenarioID" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataFile" class="control-label"></label>
+                <label asp-for="DataFile" class="control-label"></label> (*)
                 <input asp-for="DataFile" type="file" accept=".xlsx" class="form-control" />
                 <span asp-validation-for="DataFile" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Import" class="btn btn-primary" />
+                <input type="submit" id="action" name="action" value="Import" class="btn btn-primary" />
             </div>
         </form>
     </div>

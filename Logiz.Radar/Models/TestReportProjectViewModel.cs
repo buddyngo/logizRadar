@@ -11,6 +11,7 @@ namespace Logiz.Radar.Models
         public string ProjectName { get; set; }
         public int Passed { get; set; }
         public int Failed { get; set; }
+        public int Fixed { get; set; }
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
@@ -19,7 +20,7 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold + Canceled;
+                return Passed + Failed + Fixed + Open + Pending + Hold + Canceled;
             }
         }
         public decimal PassedPercentage
@@ -34,6 +35,13 @@ namespace Logiz.Radar.Models
             get
             {
                 return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Failed * 100, Total), 2);
+            }
+        }
+        public decimal FixedPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide(Fixed * 100, Total), 2);
             }
         }
         public decimal OpenPercentage
@@ -70,7 +78,15 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Failed) * 100, Passed + Failed + Open + Pending + Hold), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Canceled) * 100, Total), 0);
+            }
+        }
+
+        public decimal TestedPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Canceled + Failed) * 100, Total), 0);
             }
         }
 
@@ -87,6 +103,7 @@ namespace Logiz.Radar.Models
         public string ScenarioName { get; set; }
         public int Passed { get; set; }
         public int Failed { get; set; }
+        public int Fixed { get; set; }
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
@@ -95,14 +112,21 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold + Canceled;
+                return Passed + Failed + Fixed + Open + Pending + Hold + Canceled;
             }
         }
         public decimal DonePercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Failed) * 100, Passed + Failed + Open + Pending + Hold), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Canceled) * 100, Total), 0);
+            }
+        }
+        public decimal TestedPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Passed + Canceled + Failed) * 100, Total), 0);
             }
         }
         public DateTime? StartDate { get; set; }
@@ -114,6 +138,7 @@ namespace Logiz.Radar.Models
         public DateTime PlannedDate { get; set; }
         public int Passed { get; set; }
         public int Failed { get; set; }
+        public int Fixed { get; set; }
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
@@ -122,14 +147,21 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold + Canceled;
+                return Passed + Failed + Fixed + Open + Pending + Hold + Canceled;
             }
         }
-        public Decimal WorkloadPercentage
+        public Decimal CurrentWorkloadPercentage
         {
             get
             {
-                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Open + Pending + Hold) * 100, Passed + Failed + Open + Pending + Hold), 0);
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Total - Passed - Canceled - Failed) * 100, Total), 0);
+            }
+        }
+        public Decimal UpToEndWorkloadPercentage
+        {
+            get
+            {
+                return Total == 0 ? 0 : Decimal.Round(Decimal.Divide((Total - Passed - Canceled) * 100, Total), 0);
             }
         }
     }
@@ -139,6 +171,7 @@ namespace Logiz.Radar.Models
         public DateTime PlannedDate { get; set; }
         public int Passed { get; set; }
         public int Failed { get; set; }
+        public int Fixed { get; set; }
         public int Open { get; set; }
         public int Hold { get; set; }
         public int Pending { get; set; }
@@ -147,9 +180,10 @@ namespace Logiz.Radar.Models
         {
             get
             {
-                return Passed + Failed + Open + Pending + Hold + Canceled;
+                return Passed + Failed + Fixed + Open + Pending + Hold + Canceled;
             }
         }
-        public Decimal WorkloadPercentage { get; set; }
+        public Decimal CurrentWorkloadPercentage { get; set; }
+        public Decimal UpToEndWorkloadPercentage { get; set; }
     }
 }

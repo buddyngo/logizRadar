@@ -12,8 +12,6 @@ namespace Logiz.Radar.Models
         [Required]
         public string ProjectID { get; set; }
         [Required]
-        public string ScenarioID { get; set; }
-        [Required]
         public IFormFile DataFile { get; set; }
     }
 }

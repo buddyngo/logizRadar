@@ -71,6 +71,13 @@ namespace Logiz.Radar.Controllers
                 return Forbid();
             }
 
+            var isDuplicated = _context.TestVariant.Any(i => i.VariantName.Equals(testVariant.VariantName, StringComparison.OrdinalIgnoreCase)
+                                                && i.ScenarioID.Equals(testVariant.ScenarioID, StringComparison.OrdinalIgnoreCase));
+            if (isDuplicated)
+            {
+                ModelState.AddModelError("VariantName", "This Variant Name is already existing. ");
+            }
+
             if (ModelState.IsValid)
             {
                 testVariant.SetCreator(User.Identity.Name);
@@ -144,6 +151,13 @@ namespace Logiz.Radar.Controllers
             if (!CanWrite(User.Identity.Name, ProjectID))
             {
                 return Forbid();
+            }
+
+            var isDuplicated = _context.TestVariant.Any(i => i.VariantName.Equals(testVariant.VariantName, StringComparison.OrdinalIgnoreCase)
+                                    && i.ScenarioID.Equals(testVariant.ScenarioID, StringComparison.OrdinalIgnoreCase));
+            if (isDuplicated)
+            {
+                ModelState.AddModelError("VariantName", "This Variant Name is already existing. ");
             }
 
             if (ModelState.IsValid)

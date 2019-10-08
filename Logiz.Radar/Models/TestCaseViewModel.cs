@@ -9,6 +9,7 @@ namespace Logiz.Radar.Models
 {
     public class TestCaseViewModel
     {
+        public int Index { get; set; }
         public string ProjectID { get; set; }
         public string ProjectName { get; set; }
         public string ScenarioID { get; set; }

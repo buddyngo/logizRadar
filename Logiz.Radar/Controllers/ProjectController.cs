@@ -55,6 +55,12 @@ namespace Logiz.Radar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProjectName,ID,CreatedBy,CreatedDateTime,UpdatedBy,UpdatedDateTime,IsActive")] Project project)
         {
+            var isDuplicated = _context.Project.Any(i => i.ProjectName.Equals(project.ProjectName, StringComparison.OrdinalIgnoreCase));
+            if (isDuplicated)
+            {
+                ModelState.AddModelError("ProjectName", "This Project Name is already existing. ");
+            }
+
             if (ModelState.IsValid)
             {
                 project.SetCreator(User.Identity.Name);
@@ -122,6 +128,12 @@ namespace Logiz.Radar.Controllers
             if (!CanWrite(User.Identity.Name, id))
             {
                 return Forbid();
+            }
+
+            var isDuplicated = _context.Project.Any(i => i.ProjectName.Equals(project.ProjectName, StringComparison.OrdinalIgnoreCase));
+            if (isDuplicated)
+            {
+                ModelState.AddModelError("ProjectName", "This Project Name is already existing. ");
             }
 
             if (ModelState.IsValid)
@@ -279,6 +291,8 @@ namespace Logiz.Radar.Controllers
             report.Passed = totalPassed.HasValue ? totalPassed.Value : 0;
             var totalFailed = projectSummary.FirstOrDefault(i => i.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase))?.Total;
             report.Failed = totalFailed.HasValue ? totalFailed.Value : 0;
+            var totalFixed = projectSummary.FirstOrDefault(i => i.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase))?.Total;
+            report.Fixed = totalFixed.HasValue ? totalFixed.Value : 0;
             var totalOpen = projectSummary.FirstOrDefault(i => i.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase))?.Total;
             report.Open = totalOpen.HasValue ? totalOpen.Value : 0;
             var totalPending = projectSummary.FirstOrDefault(i => i.TestStatus.Equals(TestStatuses.Pending, StringComparison.OrdinalIgnoreCase))?.Total;
@@ -302,6 +316,9 @@ namespace Logiz.Radar.Controllers
                                    join failed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase))
                                    .GroupBy(i => i.ScenarioID).Select(i => new { ScenarioID = i.Key, Total = i.Count() })
                                    on scenario.ID equals failed.ScenarioID into groupFailed
+                                   join cfixed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.ScenarioID).Select(i => new { ScenarioID = i.Key, Total = i.Count() })
+                                   on scenario.ID equals cfixed.ScenarioID into groupFixed
                                    join open in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase))
                                    .GroupBy(i => i.ScenarioID).Select(i => new { ScenarioID = i.Key, Total = i.Count() })
                                    on scenario.ID equals open.ScenarioID into groupOpen
@@ -322,6 +339,7 @@ namespace Logiz.Radar.Controllers
                                    on scenario.ID equals endDate.ScenarioID into groupEndDate
                                    from passedLeft in groupPassed.DefaultIfEmpty()
                                    from failedLeft in groupFailed.DefaultIfEmpty()
+                                   from fixedLeft in groupFixed.DefaultIfEmpty()
                                    from openLeft in groupOpen.DefaultIfEmpty()
                                    from pendingLeft in groupPending.DefaultIfEmpty()
                                    from holdLeft in groupHold.DefaultIfEmpty()
@@ -335,6 +353,7 @@ namespace Logiz.Radar.Controllers
                                        ScenarioName = scenario.ScenarioName,
                                        Passed = passedLeft != null ? passedLeft.Total : 0,
                                        Failed = failedLeft != null ? failedLeft.Total : 0,
+                                       Fixed = fixedLeft != null ? fixedLeft.Total : 0,
                                        Open = openLeft != null ? openLeft.Total : 0,
                                        Pending = pendingLeft != null ? pendingLeft.Total : 0,
                                        Hold = holdLeft != null ? holdLeft.Total : 0,
@@ -353,6 +372,9 @@ namespace Logiz.Radar.Controllers
                                join failed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase))
                                .GroupBy(i => i.TestCase.PlannedDate).Select(i => new { PlannedDate = i.Key, Total = i.Count() })
                                on plan equals failed.PlannedDate into groupFailed
+                               join cfixed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase))
+                               .GroupBy(i => i.TestCase.PlannedDate).Select(i => new { PlannedDate = i.Key, Total = i.Count() })
+                               on plan equals cfixed.PlannedDate into groupFixed
                                join open in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase))
                                .GroupBy(i => i.TestCase.PlannedDate).Select(i => new { PlannedDate = i.Key, Total = i.Count() })
                                on plan equals open.PlannedDate into groupOpen
@@ -367,6 +389,7 @@ namespace Logiz.Radar.Controllers
                                on plan equals canceled.PlannedDate into groupCanceled
                                from passedLeft in groupPassed.DefaultIfEmpty()
                                from failedLeft in groupFailed.DefaultIfEmpty()
+                               from fixedLeft in groupFixed.DefaultIfEmpty()
                                from openLeft in groupOpen.DefaultIfEmpty()
                                from pendingLeft in groupPending.DefaultIfEmpty()
                                from holdLeft in groupHold.DefaultIfEmpty()
@@ -376,6 +399,7 @@ namespace Logiz.Radar.Controllers
                                    PlannedDate = plan,
                                    Passed = passedLeft != null ? passedLeft.Total : 0,
                                    Failed = failedLeft != null ? failedLeft.Total : 0,
+                                   Fixed = fixedLeft != null ? fixedLeft.Total : 0,
                                    Open = openLeft != null ? openLeft.Total : 0,
                                    Pending = pendingLeft != null ? pendingLeft.Total : 0,
                                    Hold = holdLeft != null ? holdLeft.Total : 0,
@@ -392,11 +416,13 @@ namespace Logiz.Radar.Controllers
                                           plan.PlannedDate,
                                           running.Passed,
                                           running.Failed,
+                                          running.Fixed,
                                           running.Open,
                                           running.Pending,
                                           running.Hold,
                                           running.Canceled,
-                                          running.WorkloadPercentage
+                                          running.CurrentWorkloadPercentage,
+                                          running.UpToEndWorkloadPercentage
                                       })
                                         .GroupBy(i => i.PlannedDate)
                                         .Select(i => new TestReportByPlannedDateAccumulation()
@@ -404,11 +430,13 @@ namespace Logiz.Radar.Controllers
                                             PlannedDate = i.Key,
                                             Passed = i.Sum(j => j.Passed),
                                             Failed = i.Sum(j => j.Failed),
+                                            Fixed = i.Sum(j => j.Fixed),
                                             Open = i.Sum(j => j.Open),
                                             Pending = i.Sum(j => j.Pending),
                                             Hold = i.Sum(j => j.Hold),
                                             Canceled = i.Sum(j => j.Canceled),
-                                            WorkloadPercentage = i.Sum(j => j.WorkloadPercentage)
+                                            CurrentWorkloadPercentage = i.Sum(j => j.CurrentWorkloadPercentage),
+                                            UpToEndWorkloadPercentage = i.Sum(j => j.UpToEndWorkloadPercentage)
                                         }).OrderBy(i => i.PlannedDate).ToList();
             report.ReportByPlannedDateAccumulation = runningPlanSummary;
 
