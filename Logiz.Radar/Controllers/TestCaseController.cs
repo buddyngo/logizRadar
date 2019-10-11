@@ -124,9 +124,9 @@ namespace Logiz.Radar.Controllers
                         ws.Cells[i + 2, 3].Value = caseList[i].TestCase.TestCaseSteps;
                         ws.Cells[i + 2, 4].Value = caseList[i].TestCase.ExpectedResult;
                         ws.Cells[i + 2, 5].Value = caseList[i].TestCase.ActualResult;
-                        ws.Cells[i + 2, 6].Value = caseList[i].TestCase.TesterName;
-                        ws.Cells[i + 2, 7].Value = caseList[i].TestCase.PlannedDate;
-                        ws.Cells[i + 2, 8].Value = caseList[i].TestCase.TestStatus;
+                        ws.Cells[i + 2, 6].Value = caseList[i].TestCase.TestStatus;
+                        ws.Cells[i + 2, 7].Value = caseList[i].TestCase.TesterName;
+                        ws.Cells[i + 2, 8].Value = caseList[i].TestCase.PlannedDate;
                         ws.Cells[i + 2, 9].Value = caseList[i].ScenarioID;
                         ws.Cells[i + 2, 10].Value = caseList[i].TestCase.ID;
                         //Column 11 for system validation
@@ -704,7 +704,7 @@ namespace Logiz.Radar.Controllers
                             return View(importModel);
                         }
 
-                        int rowCount = workSheet.Dimension.Rows;
+                        int rowCount = workSheet.Dimension.Rows + 1;
                         List<TestCaseViewModel> inputTestCaseList = new List<TestCaseViewModel>();
 
                         for (int i = 2; i < rowCount; i++)
@@ -721,9 +721,9 @@ namespace Logiz.Radar.Controllers
                                     TestCaseSteps = workSheet.Cells[i, 3].GetValue<string>(),
                                     ExpectedResult = workSheet.Cells[i, 4].GetValue<string>(),
                                     ActualResult = workSheet.Cells[i, 5].GetValue<string>(),
-                                    TesterName = workSheet.Cells[i, 6].GetValue<string>(),
-                                    PlannedDate = workSheet.Cells[i, 7].GetValue<DateTime>().Date,
-                                    TestStatus = workSheet.Cells[i, 8].GetValue<string>()
+                                    TestStatus = workSheet.Cells[i, 6].GetValue<string>(),
+                                    TesterName = workSheet.Cells[i, 7].GetValue<string>(),
+                                    PlannedDate = workSheet.Cells[i, 8].GetValue<DateTime>().Date
                                 }
                             };
                             inputTestCaseList.Add(inputTestCase);
@@ -734,17 +734,21 @@ namespace Logiz.Radar.Controllers
                         var newTestCaseList = new List<TestCase>();
                         var updatedTestCaseList = new List<TestCase>();
                         var inputScenarioIDList = inputTestCaseList.Select(i => new { i.ScenarioID }).Distinct().ToList();
-                        var existingScenarioList = await (from s in _context.TestScenario
+                        var existingScenarioList = await (from s in _context.TestScenario.Where(i => i.ProjectID.Equals(importModel.ProjectID, StringComparison.OrdinalIgnoreCase))
                                                           join iS in inputScenarioIDList
                                                           on s.ID equals iS.ScenarioID
                                                           select s).ToListAsync();
                         var inputVariantIDList = inputTestCaseList.Select(i => new { i.ScenarioID, i.VariantName }).Distinct().ToList();
                         var existingVariantList = await (from v in _context.TestVariant
+                                                         join iS in existingScenarioList
+                                                         on v.ScenarioID equals iS.ID
                                                          join iv in inputVariantIDList
                                                          on new { v.ScenarioID, v.VariantName } equals new { iv.ScenarioID, iv.VariantName }
                                                          select v).ToListAsync();
                         var inputTestCaseIDList = inputTestCaseList.Select(i => new { i.TestCase.ID }).Distinct().ToList();
                         var existingTestCaseList = await (from c in _context.TestCase
+                                                          join iv in existingVariantList
+                                                          on c.TestVariantID equals iv.ID
                                                           join ic in inputTestCaseIDList
                                                           on c.ID equals ic.ID
                                                           select c).ToListAsync();

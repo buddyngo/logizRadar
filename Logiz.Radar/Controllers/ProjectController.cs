@@ -283,7 +283,14 @@ namespace Logiz.Radar.Controllers
                                          ScenarioName = scenario.ScenarioName,
                                          VariantID = variant.ID,
                                          VariantName = variant.VariantName,
-                                         TestCase = testCase
+                                         TestCase = new
+                                         {
+                                             ID = testCase.ID,
+                                             TestVariantID = testCase.TestVariantID,
+                                             TestStatus = testCase.TestStatus,
+                                             TesterName = testCase.TesterName.ToUpper(),
+                                             PlannedDate = testCase.PlannedDate
+                                         }
                                      }).ToListAsync();
             var projectSummary = testCaseRaw.GroupBy(i => i.TestCase.TestStatus).Select(i => new { TestStatus = i.Key, Total = i.Count() }).ToList();
 
@@ -439,6 +446,179 @@ namespace Logiz.Radar.Controllers
                                             UpToEndWorkloadPercentage = i.Sum(j => j.UpToEndWorkloadPercentage)
                                         }).OrderBy(i => i.PlannedDate).ToList();
             report.ReportByPlannedDateAccumulation = runningPlanSummary;
+
+            //Resource summary
+            var resourceRaw = (from r in testCaseRaw.Select(i => new { TesterName = i.TestCase.TesterName }).Distinct()
+                               join sd in testCaseRaw.GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, StartDate = i.Min(g => g.TestCase.PlannedDate) })
+                               on r.TesterName equals sd.TesterName into groupStartDate
+                               join ed in testCaseRaw.GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, EndDate = i.Max(g => g.TestCase.PlannedDate) })
+                               on r.TesterName equals ed.TesterName into groupEndDate
+                               join totalWorkingDay in testCaseRaw.Select(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Distinct()
+                                   .GroupBy(i => i.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on r.TesterName equals totalWorkingDay.TesterName into groupTotalPlannedDays
+                               join remainingPendingDay in testCaseRaw.Where(i => i.TestCase.PlannedDate > DateTime.Today
+                                               && (i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase)
+                                               || i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase)
+                                               || i.TestCase.TestStatus.Equals(TestStatuses.Pending, StringComparison.OrdinalIgnoreCase)
+                                               || i.TestCase.TestStatus.Equals(TestStatuses.Hold, StringComparison.OrdinalIgnoreCase)
+                                               || i.TestCase.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase)))
+                                           .Select(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Distinct()
+                                  .GroupBy(i => i.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                  on r.TesterName equals remainingPendingDay.TesterName into groupRemainingPendingDays
+                               join remainingWorkingDay in testCaseRaw.Where(i => i.TestCase.PlannedDate > DateTime.Today
+                                            && (i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase)
+                                            || i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase)))
+                                        .Select(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Distinct()
+                               .GroupBy(i => i.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                               on r.TesterName equals remainingWorkingDay.TesterName into groupRemainingWorkingDays
+                               from lsd in groupStartDate.DefaultIfEmpty()
+                               from led in groupEndDate.DefaultIfEmpty()
+                               from totalPlannedDayLeft in groupTotalPlannedDays.DefaultIfEmpty()
+                               from remainingPendingDayLeft in groupRemainingPendingDays.DefaultIfEmpty()
+                               from remainingWorkingDayLeft in groupRemainingWorkingDays.DefaultIfEmpty()
+                               select new
+                               {
+                                   TesterName = r.TesterName,
+                                   StartDate = lsd?.StartDate,
+                                   EndDate = led?.EndDate,
+                                   TotalPlannedDays = totalPlannedDayLeft != null ? totalPlannedDayLeft.Total : 0,
+                                   RemainingPendingDays = remainingPendingDayLeft != null ? remainingPendingDayLeft.Total : 0,
+                                   RemainingWorkingDays = remainingWorkingDayLeft != null ? remainingWorkingDayLeft.Total : 0
+                               }).ToList();
+
+            var resourceSummary = (from resource in resourceRaw
+                                   join passed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Passed, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals passed.TesterName into groupPassed
+                                   join failed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals failed.TesterName into groupFailed
+                                   join cfixed in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals cfixed.TesterName into groupFixed
+                                   join open in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals open.TesterName into groupOpen
+                                   join pending in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Pending, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals pending.TesterName into groupPending
+                                   join hold in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Hold, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals hold.TesterName into groupHold
+                                   join canceled in testCaseRaw.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Canceled, StringComparison.OrdinalIgnoreCase))
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, Total = i.Count() })
+                                   on resource.TesterName equals canceled.TesterName into groupCanceled
+                                   join startDate in testCaseRaw
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, StartDate = i.Min(g => g.TestCase.PlannedDate) })
+                                   on resource.TesterName equals startDate.TesterName into groupStartDate
+                                   join endDate in testCaseRaw
+                                   .GroupBy(i => i.TestCase.TesterName).Select(i => new { TesterName = i.Key, EndDate = i.Max(g => g.TestCase.PlannedDate) })
+                                   on resource.TesterName equals endDate.TesterName into groupEndDate
+                                   from passedLeft in groupPassed.DefaultIfEmpty()
+                                   from failedLeft in groupFailed.DefaultIfEmpty()
+                                   from fixedLeft in groupFixed.DefaultIfEmpty()
+                                   from openLeft in groupOpen.DefaultIfEmpty()
+                                   from pendingLeft in groupPending.DefaultIfEmpty()
+                                   from holdLeft in groupHold.DefaultIfEmpty()
+                                   from canceledLeft in groupCanceled.DefaultIfEmpty()
+                                   from startDateLeft in groupStartDate.DefaultIfEmpty()
+                                   from endDateLeft in groupEndDate.DefaultIfEmpty()
+                                   select new TestReportByResourceSummary()
+                                   {
+                                       TesterName = resource.TesterName,
+                                       Passed = passedLeft != null ? passedLeft.Total : 0,
+                                       Failed = failedLeft != null ? failedLeft.Total : 0,
+                                       Fixed = fixedLeft != null ? fixedLeft.Total : 0,
+                                       Open = openLeft != null ? openLeft.Total : 0,
+                                       Pending = pendingLeft != null ? pendingLeft.Total : 0,
+                                       Hold = holdLeft != null ? holdLeft.Total : 0,
+                                       Canceled = canceledLeft != null ? canceledLeft.Total : 0,
+                                       StartDate = startDateLeft?.StartDate,
+                                       EndDate = endDateLeft?.EndDate,
+                                       TotalPlannedDays = resource.TotalPlannedDays,
+                                       RemainingPendingDays = resource.RemainingPendingDays,
+                                       RemainingWorkingDays = resource.RemainingWorkingDays
+                                   }).OrderBy(i => i.TestedPercentage).ToList();
+            report.TestReportByResourceSummary = resourceSummary;
+
+            //Resource workload accumulation
+            var testCaseRawUntilToday = testCaseRaw.Where(i => i.TestCase.PlannedDate <= DateTime.Today).ToList();
+            var resourceDate = (from resource in testCaseRawUntilToday.Select(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Distinct()
+                                join passed in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Passed, StringComparison.OrdinalIgnoreCase))
+                               .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                               on new { resource.TesterName, resource.PlannedDate } equals new { passed.TesterName, passed.PlannedDate } into groupPassed
+                                join failed in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Failed, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { failed.TesterName, failed.PlannedDate } into groupFailed
+                                join cfixed in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Fixed, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { cfixed.TesterName, cfixed.PlannedDate } into groupFixed
+                                join open in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Open, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { open.TesterName, open.PlannedDate } into groupOpen
+                                join pending in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Pending, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { pending.TesterName, pending.PlannedDate } into groupPending
+                                join hold in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Hold, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { hold.TesterName, hold.PlannedDate } into groupHold
+                                join canceled in testCaseRawUntilToday.Where(i => i.TestCase.TestStatus.Equals(TestStatuses.Canceled, StringComparison.OrdinalIgnoreCase))
+                                .GroupBy(i => new { i.TestCase.TesterName, i.TestCase.PlannedDate }).Select(i => new { TesterName = i.Key.TesterName, PlannedDate = i.Key.PlannedDate, Total = i.Count() })
+                                on new { resource.TesterName, resource.PlannedDate } equals new { canceled.TesterName, canceled.PlannedDate } into groupCanceled
+                                from passedLeft in groupPassed.DefaultIfEmpty()
+                                from failedLeft in groupFailed.DefaultIfEmpty()
+                                from fixedLeft in groupFixed.DefaultIfEmpty()
+                                from openLeft in groupOpen.DefaultIfEmpty()
+                                from pendingLeft in groupPending.DefaultIfEmpty()
+                                from holdLeft in groupHold.DefaultIfEmpty()
+                                from canceledLeft in groupCanceled.DefaultIfEmpty()
+                                select new TestReportByResourceDate()
+                                {
+                                    TesterName = resource.TesterName,
+                                    PlannedDate = resource.PlannedDate,
+                                    Passed = passedLeft != null ? passedLeft.Total : 0,
+                                    Failed = failedLeft != null ? failedLeft.Total : 0,
+                                    Fixed = fixedLeft != null ? fixedLeft.Total : 0,
+                                    Open = openLeft != null ? openLeft.Total : 0,
+                                    Pending = pendingLeft != null ? pendingLeft.Total : 0,
+                                    Hold = holdLeft != null ? holdLeft.Total : 0,
+                                    Canceled = canceledLeft != null ? canceledLeft.Total : 0,
+                                }).ToList();
+
+            var resourceWorkload = (from r in resourceRaw
+                                    join rd in resourceDate.GroupBy(i => i.TesterName)
+                                   .Select(i => new ResourceWorkloadAccumulation()
+                                   {
+                                       TesterName = i.Key,
+                                       CurrentWorkloadPercentage = i.Sum(g => g.CurrentWorkloadPercentage),
+                                       UpToEndWorkloadPercentage = i.Sum(g => g.UpToEndWorkloadPercentage),
+                                       Passed = i.Sum(g => g.Passed),
+                                       Failed = i.Sum(g => g.Failed),
+                                       Fixed = i.Sum(g => g.Fixed),
+                                       Open = i.Sum(g => g.Open),
+                                       Pending = i.Sum(g => g.Pending),
+                                       Hold = i.Sum(g => g.Hold),
+                                       Canceled = i.Sum(g => g.Canceled),
+                                   })
+                                   on r.TesterName equals rd.TesterName into groupResourceDate
+                                    from rdl in groupResourceDate.DefaultIfEmpty()
+                                    select new ResourceWorkloadAccumulation()
+                                    {
+                                        TesterName = rdl.TesterName,
+                                        TotalPlannedDays = r.TotalPlannedDays,
+                                        RemainingPendingDays = r.RemainingPendingDays,
+                                        RemainingWorkingDays = r.RemainingWorkingDays,
+                                        CurrentWorkloadPercentage = decimal.Round(rdl.CurrentWorkloadPercentage, 0),
+                                        UpToEndWorkloadPercentage = decimal.Round(rdl.UpToEndWorkloadPercentage, 0),
+                                        Passed = rdl.Passed,
+                                        Canceled = rdl.Canceled,
+                                        Failed = rdl.Failed,
+                                        Fixed = rdl.Fixed,
+                                        Open = rdl.Open,
+                                        Pending = rdl.Pending,
+                                        Hold = rdl.Hold
+                                    }).OrderBy(i => i.TestedPercentage).ToList();
+            report.ResourceWorkloadAccumulation = resourceWorkload;
 
             return View(report);
         }

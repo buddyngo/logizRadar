@@ -109,7 +109,7 @@ namespace Logiz.Radar
                     {
                         var exceptionHandlerPathFeature =
                             context.Features.Get<IExceptionHandlerPathFeature>();
-                        context.Response.Redirect("/" + alias + "/Home/Error?code=500&errorMessage=" + exceptionHandlerPathFeature?.Error.Message);
+                        context.Response.Redirect("/" + alias + "/Home/Error?code=500&errorMessage=" + exceptionHandlerPathFeature?.Error?.Message);
                     });
                 });
                 app.UseStatusCodePagesWithRedirects("/" + alias + "/Home/Error?code={0}");
