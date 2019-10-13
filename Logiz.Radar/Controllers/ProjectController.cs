@@ -9,6 +9,8 @@ using Logiz.Radar.Data.Context;
 using Logiz.Radar.Data.Model;
 using Microsoft.AspNetCore.Authorization;
 using Logiz.Radar.Models;
+using System.IO;
+using OfficeOpenXml;
 
 namespace Logiz.Radar.Controllers
 {
@@ -248,7 +250,7 @@ namespace Logiz.Radar.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Report(string id)
+        public async Task<IActionResult> Report(string id, string Action)
         {
             if (id == null)
             {
@@ -619,6 +621,152 @@ namespace Logiz.Radar.Controllers
                                         Hold = rdl.Hold
                                     }).OrderBy(i => i.TestedPercentage).ToList();
             report.ResourceWorkloadAccumulation = resourceWorkload;
+
+            if (Action == "Export")
+            {
+                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/template/logiz.radar.test-report.xlsx");
+                var fi = new FileInfo(filePath);
+                using (var ep = new ExcelPackage(fi))
+                {
+                    //Project Summary
+                    var ps = ep.Workbook.Worksheets["PS"];
+                    ps.Cells[2, 1].Value = DateTime.Now;
+                    ps.Cells[4, 1].Value = report.StartDate;
+                    ps.Cells[4, 2].Value = report.EndDate;
+                    ps.Cells[4, 3].Value = report.TestedPercentage / 100;
+                    ps.Cells[4, 4].Value = report.DonePercentage / 100;
+                    ps.Cells[4, 5].Value = report.Total;
+                    ps.Cells[4, 6].Value = report.Passed;
+                    ps.Cells[4, 7].Value = report.Canceled;
+                    ps.Cells[4, 8].Value = report.Failed;
+                    ps.Cells[4, 9].Value = report.Fixed;
+                    ps.Cells[4, 10].Value = report.Pending;
+                    ps.Cells[4, 11].Value = report.Open;
+                    ps.Cells[4, 12].Value = report.Hold;
+                    ps.Cells[5, 6].Value = report.PassedPercentage / 100;
+                    ps.Cells[5, 7].Value = report.CanceledPercentage / 100;
+                    ps.Cells[5, 8].Value = report.FailedPercentage / 100;
+                    ps.Cells[5, 9].Value = report.FixedPercentage / 100;
+                    ps.Cells[5, 10].Value = report.PendingPercentage / 100;
+                    ps.Cells[5, 11].Value = report.OpenPercentage / 100;
+                    ps.Cells[5, 12].Value = report.HoldPercentage / 100;
+
+                    //Scenario Summary
+                    var ss = ep.Workbook.Worksheets["SS"];
+                    ss.Cells[2, 1].Value = DateTime.Now;
+                    int i = 3;
+                    foreach (var s in report.ReportByScenario)
+                    {
+                        i++;
+                        ss.Cells[i, 1].Value = s.ScenarioName;
+                        ss.Cells[i, 2].Value = s.StartDate;
+                        ss.Cells[i, 3].Value = s.EndDate;
+                        ss.Cells[i, 4].Value = s.TestedPercentage / 100;
+                        ss.Cells[i, 5].Value = s.DonePercentage / 100;
+                        ss.Cells[i, 6].Value = s.Total;
+                        ss.Cells[i, 7].Value = s.Passed;
+                        ss.Cells[i, 8].Value = s.Canceled;
+                        ss.Cells[i, 9].Value = s.Failed;
+                        ss.Cells[i, 10].Value = s.Fixed;
+                        ss.Cells[i, 11].Value = s.Pending;
+                        ss.Cells[i, 12].Value = s.Open;
+                        ss.Cells[i, 13].Value = s.Hold;
+                    }
+
+                    //Planned Date Daily
+                    var pd = ep.Workbook.Worksheets["PD"];
+                    pd.Cells[2, 1].Value = DateTime.Now;
+                    i = 3;
+                    foreach (var p in report.ReportByPlannedDate)
+                    {
+                        i++;
+                        pd.Cells[i, 1].Value = p.PlannedDate;
+                        pd.Cells[i, 2].Value = p.CurrentWorkloadPercentage / 100;
+                        pd.Cells[i, 3].Value = p.UpToEndWorkloadPercentage / 100;
+                        pd.Cells[i, 4].Value = p.Total;
+                        pd.Cells[i, 5].Value = p.Passed;
+                        pd.Cells[i, 6].Value = p.Canceled;
+                        pd.Cells[i, 7].Value = p.Failed;
+                        pd.Cells[i, 8].Value = p.Fixed;
+                        pd.Cells[i, 9].Value = p.Pending;
+                        pd.Cells[i, 10].Value = p.Open;
+                        pd.Cells[i, 11].Value = p.Hold;
+                    }
+
+                    //Planned Date Accumulation
+                    var pa = ep.Workbook.Worksheets["PA"];
+                    pa.Cells[2, 1].Value = DateTime.Now;
+                    i = 3;
+                    foreach (var p in report.ReportByPlannedDateAccumulation)
+                    {
+                        i++;
+                        pa.Cells[i, 1].Value = p.PlannedDate;
+                        pa.Cells[i, 2].Value = p.CurrentWorkloadPercentage / 100;
+                        pa.Cells[i, 3].Value = p.UpToEndWorkloadPercentage / 100;
+                        pa.Cells[i, 4].Value = p.Total;
+                        pa.Cells[i, 5].Value = p.Passed;
+                        pa.Cells[i, 6].Value = p.Canceled;
+                        pa.Cells[i, 7].Value = p.Failed;
+                        pa.Cells[i, 8].Value = p.Fixed;
+                        pa.Cells[i, 9].Value = p.Pending;
+                        pa.Cells[i, 10].Value = p.Open;
+                        pa.Cells[i, 11].Value = p.Hold;
+                    }
+
+                    //Resource Summary
+                    var rs = ep.Workbook.Worksheets["RS"];
+                    rs.Cells[2, 1].Value = DateTime.Now;
+                    i = 3;
+                    foreach (var r in report.TestReportByResourceSummary)
+                    {
+                        i++;
+                        rs.Cells[i, 1].Value = r.TesterName;
+                        rs.Cells[i, 2].Value = r.StartDate;
+                        rs.Cells[i, 3].Value = r.EndDate;
+                        rs.Cells[i, 4].Value = r.RemainingWorkingDays;
+                        rs.Cells[i, 5].Value = r.RemainingPendingDays;
+                        rs.Cells[i, 6].Value = r.TotalPlannedDays;
+                        rs.Cells[i, 7].Value = r.TestedPercentage / 100;
+                        rs.Cells[i, 8].Value = r.DonePercentage / 100;
+                        rs.Cells[i, 9].Value = r.Total;
+                        rs.Cells[i, 10].Value = r.Passed;
+                        rs.Cells[i, 11].Value = r.Canceled;
+                        rs.Cells[i, 12].Value = r.Failed;
+                        rs.Cells[i, 13].Value = r.Fixed;
+                        rs.Cells[i, 14].Value = r.Pending;
+                        rs.Cells[i, 15].Value = r.Open;
+                        rs.Cells[i, 16].Value = r.Hold;
+                    }
+
+                    //Current Resource Workload
+                    var rc = ep.Workbook.Worksheets["RC"];
+                    rc.Cells[2, 1].Value = DateTime.Now;
+                    i = 3;
+                    foreach (var r in report.ResourceWorkloadAccumulation)
+                    {
+                        i++;
+                        rc.Cells[i, 1].Value = r.TesterName;
+                        rc.Cells[i, 2].Value = r.CurrentWorkloadPercentage / 100;
+                        rc.Cells[i, 3].Value = r.UpToEndWorkloadPercentage / 100;
+                        rc.Cells[i, 4].Value = r.RemainingWorkingDays;
+                        rc.Cells[i, 5].Value = r.RemainingPendingDays;
+                        rc.Cells[i, 6].Value = r.TotalPlannedDays;
+                        rc.Cells[i, 7].Value = r.TestedPercentage / 100;
+                        rc.Cells[i, 8].Value = r.DonePercentage / 100;
+                        rc.Cells[i, 9].Value = r.Total;
+                        rc.Cells[i, 10].Value = r.Passed;
+                        rc.Cells[i, 11].Value = r.Canceled;
+                        rc.Cells[i, 12].Value = r.Failed;
+                        rc.Cells[i, 13].Value = r.Fixed;
+                        rc.Cells[i, 14].Value = r.Pending;
+                        rc.Cells[i, 15].Value = r.Open;
+                        rc.Cells[i, 16].Value = r.Hold;
+                    }
+
+                    string fileNameToExport = $"logiz.radar.test-report_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xlsx";
+                    return File(ep.GetAsByteArray(), "application/excel", fileNameToExport);
+                }
+            }
 
             return View(report);
         }

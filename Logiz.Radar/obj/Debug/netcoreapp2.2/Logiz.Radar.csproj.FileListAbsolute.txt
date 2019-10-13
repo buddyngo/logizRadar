@@ -107,4 +107,3 @@ D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.V
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.dll
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.pdb
 D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csproj.CopyComplete
-D:\workspace\Logiz.Radar\trunk\Logiz.Radar\obj\Debug\netcoreapp2.2\Logiz.Radar.csprojAssemblyReference.cache

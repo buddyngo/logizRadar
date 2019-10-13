@@ -12,6 +12,7 @@ using Logiz.Radar.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using OfficeOpenXml;
+using System.IO.Compression;
 
 namespace Logiz.Radar.Controllers
 {
@@ -111,7 +112,6 @@ namespace Logiz.Radar.Controllers
             if (Action == "Export")
             {
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/template/logiz.radar.test-case.xlsx");
-                var scenario = await _context.TestScenario.FirstOrDefaultAsync(i => i.ID.Equals(ScenarioID, StringComparison.OrdinalIgnoreCase));
                 var fi = new FileInfo(filePath);
                 using (var p = new ExcelPackage(fi))
                 {
@@ -137,8 +137,29 @@ namespace Logiz.Radar.Controllers
                         ws.Cells[i + 2, 16].Value = caseList[i].TestCase.UpdatedBy;
                         ws.Cells[i + 2, 17].Value = caseList[i].TestCase.UpdatedDateTime;
                     }
-                    string fileNameToExport = "logiz.radar.test-case_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
+                    string fileNameToExport = $"logiz.radar.test-case_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xlsx";
                     return File(p.GetAsByteArray(), "application/excel", fileNameToExport);
+                }
+            }
+
+            if (Action == "Attachment")
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    using (var ziparchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                    {
+                        var attachmentList = await (from a in _context.TestCaseAttachment
+                                                    join c in caseList.Select(i => new { TestCaseID = i.TestCase.ID })
+                                                    on a.TestCaseID equals c.TestCaseID
+                                                    select a).ToListAsync();
+                        var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        foreach (var a in attachmentList)
+                        {
+                            ziparchive.CreateEntryFromFile(Path.Combine(rootPath, a.FullFileName),
+                                Path.Combine(a.TestCaseID, Path.GetFileNameWithoutExtension(a.OriginalFileName) + "_" + Path.GetFileNameWithoutExtension(a.FullFileName) + Path.GetExtension(a.FullFileName)));
+                        }
+                    }
+                    return File(memoryStream.ToArray(), "application/zip", $"logiz.radar.test-attachment_{DateTime.Now.ToString("yyyyMMddHHmmss")}.zip");
                 }
             }
 
