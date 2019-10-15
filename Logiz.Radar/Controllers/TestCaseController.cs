@@ -101,9 +101,10 @@ namespace Logiz.Radar.Controllers
                                           TestCaseSteps = testCase.TestCaseSteps,
                                           ExpectedResult = testCase.ExpectedResult,
                                           ActualResult = testCase.ActualResult,
+                                          TestStatus = testCase.TestStatus,
+                                          Note = testCase.Note,
                                           TesterName = testCase.TesterName,
                                           PlannedDate = testCase.PlannedDate,
-                                          TestStatus = testCase.TestStatus,
                                           UpdatedBy = testCase.UpdatedBy,
                                           UpdatedDateTime = testCase.UpdatedDateTime
                                       }
@@ -125,17 +126,18 @@ namespace Logiz.Radar.Controllers
                         ws.Cells[i + 2, 4].Value = caseList[i].TestCase.ExpectedResult;
                         ws.Cells[i + 2, 5].Value = caseList[i].TestCase.ActualResult;
                         ws.Cells[i + 2, 6].Value = caseList[i].TestCase.TestStatus;
-                        ws.Cells[i + 2, 7].Value = caseList[i].TestCase.TesterName;
-                        ws.Cells[i + 2, 8].Value = caseList[i].TestCase.PlannedDate;
-                        ws.Cells[i + 2, 9].Value = caseList[i].ScenarioID;
-                        ws.Cells[i + 2, 10].Value = caseList[i].TestCase.ID;
-                        //Column 11 for system validation
-                        ws.Cells[i + 2, 12].Value = caseList[i].ScenarioName;
-                        ws.Cells[i + 2, 13].Value = caseList[i].HasAttachment;
-                        ws.Cells[i + 2, 14].Value = caseList[i].TestCase.CreatedBy;
-                        ws.Cells[i + 2, 15].Value = caseList[i].TestCase.CreatedDateTime;
-                        ws.Cells[i + 2, 16].Value = caseList[i].TestCase.UpdatedBy;
-                        ws.Cells[i + 2, 17].Value = caseList[i].TestCase.UpdatedDateTime;
+                        ws.Cells[i + 2, 7].Value = caseList[i].TestCase.Note;
+                        ws.Cells[i + 2, 8].Value = caseList[i].TestCase.TesterName;
+                        ws.Cells[i + 2, 9].Value = caseList[i].TestCase.PlannedDate;
+                        ws.Cells[i + 2, 10].Value = caseList[i].ScenarioID;
+                        ws.Cells[i + 2, 11].Value = caseList[i].TestCase.ID;
+                        //Column 12 for system validation
+                        ws.Cells[i + 2, 13].Value = caseList[i].ScenarioName;
+                        ws.Cells[i + 2, 14].Value = caseList[i].HasAttachment;
+                        ws.Cells[i + 2, 15].Value = caseList[i].TestCase.CreatedBy;
+                        ws.Cells[i + 2, 16].Value = caseList[i].TestCase.CreatedDateTime;
+                        ws.Cells[i + 2, 17].Value = caseList[i].TestCase.UpdatedBy;
+                        ws.Cells[i + 2, 18].Value = caseList[i].TestCase.UpdatedDateTime;
                     }
                     string fileNameToExport = $"logiz.radar.test-case_{DateTime.Now.ToString("yyyyMMddHHmmss")}.xlsx";
                     return File(p.GetAsByteArray(), "application/excel", fileNameToExport);
@@ -178,11 +180,13 @@ namespace Logiz.Radar.Controllers
                                             on variant.ScenarioID equals scenario.ID
                                             select new TestCaseViewModel() { ProjectID = scenario.ProjectID, ScenarioID = scenario.ID, TestCase = tc }).FirstOrDefaultAsync();
 
-                if (clonedTestCase != null)
+                if (clonedTestCase == null)
                 {
-                    clonedTestCase.TestCase.SetCreator(User.Identity.Name);
-                    return View(clonedTestCase);
+                    return NotFound();
                 }
+
+                clonedTestCase.TestCase.SetCreator(User.Identity.Name);
+                return View(clonedTestCase);
             }
 
             TestCaseViewModel newCase = new TestCaseViewModel()
@@ -733,18 +737,19 @@ namespace Logiz.Radar.Controllers
                             var inputTestCase = new TestCaseViewModel()
                             {
                                 Index = i,
-                                ScenarioID = workSheet.Cells[i, 9].GetValue<string>(),
+                                ScenarioID = workSheet.Cells[i, 10].GetValue<string>(),
                                 VariantName = workSheet.Cells[i, 1].GetValue<string>(),
                                 TestCase = new TestCase()
                                 {
-                                    ID = workSheet.Cells[i, 10].GetValue<string>(),
+                                    ID = workSheet.Cells[i, 11].GetValue<string>(),
                                     TestCaseName = workSheet.Cells[i, 2].GetValue<string>(),
                                     TestCaseSteps = workSheet.Cells[i, 3].GetValue<string>(),
                                     ExpectedResult = workSheet.Cells[i, 4].GetValue<string>(),
                                     ActualResult = workSheet.Cells[i, 5].GetValue<string>(),
                                     TestStatus = workSheet.Cells[i, 6].GetValue<string>(),
-                                    TesterName = workSheet.Cells[i, 7].GetValue<string>(),
-                                    PlannedDate = workSheet.Cells[i, 8].GetValue<DateTime>().Date
+                                    Note = workSheet.Cells[i, 7].GetValue<string>(),
+                                    TesterName = workSheet.Cells[i, 8].GetValue<string>(),
+                                    PlannedDate = workSheet.Cells[i, 9].GetValue<DateTime>().Date
                                 }
                             };
                             inputTestCaseList.Add(inputTestCase);
@@ -848,7 +853,7 @@ namespace Logiz.Radar.Controllers
 
                             if (!string.IsNullOrEmpty(errorMessage))
                             {
-                                workSheet.Cells[inputTestCase.Index, 11].Value = errorMessage;
+                                workSheet.Cells[inputTestCase.Index, 12].Value = errorMessage;
                             }
                             else
                             {
@@ -877,9 +882,10 @@ namespace Logiz.Radar.Controllers
                                     updatedTestCase.TestCaseSteps = inputTestCase.TestCase.TestCaseSteps;
                                     updatedTestCase.ExpectedResult = inputTestCase.TestCase.ExpectedResult;
                                     updatedTestCase.ActualResult = inputTestCase.TestCase.ActualResult;
+                                    updatedTestCase.TestStatus = inputTestCase.TestCase.TestStatus;
+                                    updatedTestCase.Note = inputTestCase.TestCase.Note;
                                     updatedTestCase.TesterName = inputTestCase.TestCase.TesterName;
                                     updatedTestCase.PlannedDate = inputTestCase.TestCase.PlannedDate;
-                                    updatedTestCase.TestStatus = inputTestCase.TestCase.TestStatus;
                                     updatedTestCase.SetUpdater(User.Identity.Name);
                                     updatedTestCaseList.Add(updatedTestCase);
                                 }
@@ -892,9 +898,10 @@ namespace Logiz.Radar.Controllers
                                         TestCaseSteps = inputTestCase.TestCase.TestCaseSteps,
                                         ExpectedResult = inputTestCase.TestCase.ExpectedResult,
                                         ActualResult = inputTestCase.TestCase.ActualResult,
+                                        TestStatus = inputTestCase.TestCase.TestStatus,
+                                        Note = inputTestCase.TestCase.Note,
                                         TesterName = inputTestCase.TestCase.TesterName,
-                                        PlannedDate = inputTestCase.TestCase.PlannedDate,
-                                        TestStatus = inputTestCase.TestCase.TestStatus
+                                        PlannedDate = inputTestCase.TestCase.PlannedDate
                                     };
                                     newTestCase.SetCreator(User.Identity.Name);
                                     newTestCaseList.Add(newTestCase);

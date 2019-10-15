@@ -53,6 +53,18 @@
             @Html.DisplayFor(model => model.TestCase.ActualResult)
         </dd>
         <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.TestStatus)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.TestStatus)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TestCase.Note)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TestCase.Note)
+        </dd>
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.TestCase.TesterName)
         </dt>
         <dd class="col-sm-10">
@@ -63,12 +75,6 @@
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.TestCase.PlannedDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TestCase.TestStatus)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TestCase.TestStatus)
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.TestCase.CreatedBy)

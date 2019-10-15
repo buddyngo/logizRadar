@@ -47,6 +47,16 @@
                 <span asp-validation-for="TestCase.ActualResult" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label class="control-label">TestStatus (*)</label>
+                <select asp-for="TestCase.TestStatus" class="form-control"></select>
+                <span asp-validation-for="TestCase.TestStatus" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Note</label>
+                <textarea asp-for="TestCase.Note" class="form-control"></textarea>
+                <span asp-validation-for="TestCase.Note" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label class="control-label">TesterName (*)</label>
                 <input asp-for="TestCase.TesterName" class="form-control" />
                 <span asp-validation-for="TestCase.TesterName" class="text-danger"></span>
@@ -55,11 +65,6 @@
                 <label class="control-label">PlannedDate (*)</label>
                 <input asp-for="TestCase.PlannedDate" class="form-control" type="date" />
                 <span asp-validation-for="TestCase.PlannedDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">TestStatus (*)</label>
-                <select asp-for="TestCase.TestStatus" class="form-control"></select>
-                <span asp-validation-for="TestCase.TestStatus" class="text-danger"></span>
             </div>
 
             <input type="hidden" asp-for="TestCase.CreatedBy" />
