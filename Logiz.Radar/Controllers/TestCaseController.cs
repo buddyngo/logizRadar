@@ -86,7 +86,7 @@ namespace Logiz.Radar.Controllers
                                   join attachment in _context.TestCaseAttachment.Select(i => new { i.TestCaseID }).Distinct()
                                   on testCase.ID equals attachment.TestCaseID into groupAttachment
                                   from leftAttachment in groupAttachment.DefaultIfEmpty()
-                                  orderby testCase.PlannedDate, testCase.TestCaseName
+                                  orderby testCase.PlannedDate, scenario.ScenarioName, variant.VariantName, testCase.TestCaseName
                                   select new TestCaseViewModel
                                   {
                                       ScenarioID = scenario.ID,
