@@ -739,7 +739,7 @@ namespace Logiz.Radar.Controllers
                     }
 
                     //Current Resource Workload
-                    var rc = ep.Workbook.Worksheets["RC"];
+                    var rc = ep.Workbook.Worksheets["RW"];
                     rc.Cells[2, 1].Value = DateTime.Now;
                     i = 3;
                     foreach (var r in report.ResourceWorkloadAccumulation)
