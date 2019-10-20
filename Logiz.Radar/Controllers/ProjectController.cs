@@ -606,19 +606,19 @@ namespace Logiz.Radar.Controllers
                                     from rdl in groupResourceDate.DefaultIfEmpty()
                                     select new ResourceWorkloadAccumulation()
                                     {
-                                        TesterName = rdl.TesterName,
+                                        TesterName = r.TesterName,
                                         TotalPlannedDays = r.TotalPlannedDays,
                                         RemainingPendingDays = r.RemainingPendingDays,
                                         RemainingWorkingDays = r.RemainingWorkingDays,
-                                        CurrentWorkloadPercentage = decimal.Round(rdl.CurrentWorkloadPercentage, 0),
-                                        UpToEndWorkloadPercentage = decimal.Round(rdl.UpToEndWorkloadPercentage, 0),
-                                        Passed = rdl.Passed,
-                                        Canceled = rdl.Canceled,
-                                        Failed = rdl.Failed,
-                                        Fixed = rdl.Fixed,
-                                        Open = rdl.Open,
-                                        Pending = rdl.Pending,
-                                        Hold = rdl.Hold
+                                        CurrentWorkloadPercentage = rdl != null ? decimal.Round(rdl.CurrentWorkloadPercentage, 0) : 0,
+                                        UpToEndWorkloadPercentage = rdl != null ? decimal.Round(rdl.UpToEndWorkloadPercentage, 0) : 0,
+                                        Passed = rdl != null ? rdl.Passed : 0,
+                                        Canceled = rdl != null ? rdl.Canceled : 0,
+                                        Failed = rdl != null ? rdl.Failed : 0,
+                                        Fixed = rdl != null ? rdl.Fixed : 0,
+                                        Open = rdl != null ? rdl.Open : 0,
+                                        Pending = rdl != null ? rdl.Pending : 0,
+                                        Hold = rdl != null ? rdl.Hold : 0
                                     }).OrderBy(i => i.TestedPercentage).ToList();
             report.ResourceWorkloadAccumulation = resourceWorkload;
 
