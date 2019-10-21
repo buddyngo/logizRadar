@@ -19,28 +19,28 @@ namespace Logiz.Radar.Controllers
     public static class TestStatuses
     {
         public const string Passed = "Passed";
+        public const string Canceled = "Canceled";
         public const string Failed = "Failed";
         public const string Fixed = "Fixed";
-        public const string Open = "Open";
         public const string Pending = "Pending";
+        public const string Open = "Open";
         public const string Hold = "Hold";
-        public const string Canceled = "Canceled";
 
         public static string GetTestStatusesString()
         {
-            return $"{Passed}, {Failed}, {Fixed}, {Open}, {Pending}, {Hold}, {Canceled}";
+            return string.Join(", ", GetTestStatusesList());
         }
 
         public static List<string> GetTestStatusesList()
         {
             var testStatusList = new List<string>() {
                 TestStatuses.Passed,
+                TestStatuses.Canceled,
                 TestStatuses.Failed,
                 TestStatuses.Fixed,
                 TestStatuses.Open,
                 TestStatuses.Pending,
-                TestStatuses.Hold,
-                TestStatuses.Canceled
+                TestStatuses.Hold
             };
             return testStatusList;
         }
@@ -57,8 +57,13 @@ namespace Logiz.Radar.Controllers
         }
 
         // GET: TestCase
-        public async Task<IActionResult> Index(string ProjectID, string ScenarioID, string VariantID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string TestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate, string Action)
+        public async Task<IActionResult> Index(string ProjectID, string ScenarioID, string VariantID, string TesterName, DateTime? FromPlannedDate, DateTime? ToPlannedDate, string SearchTestStatus, DateTime? FromUpdatedDate, DateTime? ToUpdatedDate, string Action)
         {
+            if (string.IsNullOrEmpty(SearchTestStatus))
+            {
+                SearchTestStatus = string.Empty;
+            }
+            var searchStatusList = SearchTestStatus.Split(",");
             ViewBag.ProjectID = ProjectID;
             ViewBag.ScenarioID = ScenarioID;
             ViewBag.VariantID = VariantID;
@@ -67,7 +72,8 @@ namespace Logiz.Radar.Controllers
             ViewBag.ToPlannedDate = ToPlannedDate?.ToString("yyyy-MM-dd");
             ViewBag.FromUpdatedDate = FromUpdatedDate?.ToString("yyyy-MM-ddTHH:mm:ss.sss");
             ViewBag.ToUpdatedDate = ToUpdatedDate?.ToString("yyyy-MM-ddTHH:mm:ss.sss");
-            ViewBag.TestStatus = TestStatus;
+            ViewBag.SearchTestStatus = searchStatusList;
+            ViewBag.SearchTestStatusString = SearchTestStatus;
             ViewBag.CanWrite = CanWrite(User.Identity.Name, ProjectID);
 
             var caseList = await (from userProject in _context.UserMappingProject.Where(i => i.Username.Equals(User.Identity.Name, StringComparison.OrdinalIgnoreCase))
@@ -80,7 +86,7 @@ namespace Logiz.Radar.Controllers
                                   && (!ToPlannedDate.HasValue || i.PlannedDate <= ToPlannedDate)
                                   && (!FromUpdatedDate.HasValue || i.UpdatedDateTime >= FromUpdatedDate)
                                   && (!ToUpdatedDate.HasValue || i.UpdatedDateTime <= ToUpdatedDate)
-                                  && (string.IsNullOrEmpty(TestStatus) || i.TestStatus.Equals(TestStatus, StringComparison.OrdinalIgnoreCase))
+                                  && (string.IsNullOrEmpty(SearchTestStatus) || searchStatusList.Contains(i.TestStatus))
                                   && (string.IsNullOrEmpty(TesterName) || i.TesterName.Contains(TesterName, StringComparison.OrdinalIgnoreCase)))
                                   on variant.ID equals testCase.TestVariantID
                                   join attachment in _context.TestCaseAttachment.Select(i => new { i.TestCaseID }).Distinct()
@@ -378,7 +384,7 @@ namespace Logiz.Radar.Controllers
                     TesterName = TesterName,
                     FromPlannedDate = FromPlannedDate,
                     ToPlannedDate = ToPlannedDate,
-                    TestStatus = SearchTestStatus,
+                    SearchTestStatus = SearchTestStatus,
                     FromUpdatedDate = FromUpdatedDate,
                     ToUpdatedDate = ToUpdatedDate
                 });
