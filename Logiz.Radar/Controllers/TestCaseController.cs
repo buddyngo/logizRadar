@@ -779,8 +779,6 @@ namespace Logiz.Radar.Controllers
                                                          select v).ToListAsync();
                         var inputTestCaseIDList = inputTestCaseList.Select(i => new { i.TestCase.ID }).Distinct().ToList();
                         var existingTestCaseList = await (from c in _context.TestCase
-                                                          join iv in existingVariantList
-                                                          on c.TestVariantID equals iv.ID
                                                           join ic in inputTestCaseIDList
                                                           on c.ID equals ic.ID
                                                           select c).ToListAsync();
