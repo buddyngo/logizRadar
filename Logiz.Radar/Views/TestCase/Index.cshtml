@@ -172,7 +172,7 @@
                     item += '<option value="' + project.value + '">' + project.text + '</option>'
                 });
                 $("#TestStatus").html(item);
-                $("#TestStatus").val(@Html.Raw(Json.Serialize(ViewBag.SearchTestStatus)));
+                $("#TestStatus").val(@Html.Raw(Json.Serialize(ViewBag.SearchTestStatus))).change();
             });
         };
 
