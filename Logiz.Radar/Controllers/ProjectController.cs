@@ -355,7 +355,7 @@ namespace Logiz.Radar.Controllers
                                    from canceledLeft in groupCanceled.DefaultIfEmpty()
                                    from startDateLeft in groupStartDate.DefaultIfEmpty()
                                    from endDateLeft in groupEndDate.DefaultIfEmpty()
-                                   orderby startDateLeft?.StartDate, scenario.ScenarioName
+                                       //orderby startDateLeft?.StartDate, scenario.ScenarioName
                                    select new TestReportByScenario()
                                    {
                                        ScenarioID = scenario.ID,
@@ -369,7 +369,7 @@ namespace Logiz.Radar.Controllers
                                        Canceled = canceledLeft != null ? canceledLeft.Total : 0,
                                        StartDate = startDateLeft?.StartDate,
                                        EndDate = endDateLeft?.EndDate
-                                   }).ToList();
+                                   }).OrderByDescending(i => i.DonePercentage).ThenBy(i => i.StartDate).ThenBy(i => i.ScenarioName).ToList();
 
             report.ReportByScenario = scenarioSummary;
 
@@ -540,7 +540,7 @@ namespace Logiz.Radar.Controllers
                                        TotalPlannedDays = resource.TotalPlannedDays,
                                        RemainingPendingDays = resource.RemainingPendingDays,
                                        RemainingWorkingDays = resource.RemainingWorkingDays
-                                   }).OrderBy(i => i.TestedPercentage).ToList();
+                                   }).OrderByDescending(i => i.DonePercentage).ThenBy(i => i.TesterName).ToList();
             report.TestReportByResourceSummary = resourceSummary;
 
             //Resource workload accumulation
@@ -619,7 +619,7 @@ namespace Logiz.Radar.Controllers
                                         Open = rdl != null ? rdl.Open : 0,
                                         Pending = rdl != null ? rdl.Pending : 0,
                                         Hold = rdl != null ? rdl.Hold : 0
-                                    }).OrderBy(i => i.TestedPercentage).ToList();
+                                    }).OrderByDescending(i => i.DonePercentage).ThenBy(i => i.TesterName).ToList();
             report.ResourceWorkloadAccumulation = resourceWorkload;
 
             if (Action == "Export")
